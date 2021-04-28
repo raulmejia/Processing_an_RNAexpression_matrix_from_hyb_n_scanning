@@ -1,10 +1,8 @@
 ###################################
-#### This script is the master program in https://github.com/raulmejia/DSP-Oszwald
 #### Author: Raúl Mejía
-#### The aim is to coordinate DSP data analysis 
+#### The aim of this program is to explore your expression matrix, taking a glimpse of the normalization & batch effects  
 ###################################
-# The files who contain the pretended matrices should use "." Decimal insted of ","
-# The annotation file should contain columns with exactly the following names: "Morph_cat_Andre","Histology_number","Scan_ID","Biopsy_year","Morphological_Categories"
+# one column of your annotation file should have the name "group"
 ###################################
 #### 0) loading and/or installing required libraries
 ###################################
@@ -80,60 +78,37 @@ if (!require("Rtsne")) {
   BiocManager::install("Rtsne", ask =FALSE)
   library("Rtsne")
 }
-if (!require("M3C")) {
-  BiocManager::install("M3C", ask =FALSE)
-  library("M3C")
-}
-if (!require("tidyverse")) {
-  BiocManager::install("tidyverse", ask =FALSE)
-  library("tidyverse")
-}
+#if (!require("M3C")) {
+#  BiocManager::install("M3C", ask =FALSE)
+#  library("M3C")
+#}
+#if (!require("tidyverse")) {
+#  BiocManager::install("tidyverse", ask =FALSE)
+#  library("tidyverse")
+#}
 
 ###################################
 #### Data given by the user
 ###################################
-#myargs <- commandArgs(trailingOnly = TRUE)
-#path_to_your_QC_file <-myargs[1] # Data must be separated by tab (it doesn't matter if the file has the .csv extension or other one)
-#path_to_your_QC_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_in_CSV_format/QC_All_Data_Human_IO_RNA.csv"
-#path_to_your_HK_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_in_CSV_format/HKNorm_All_Data_Human_IO_RNA.csv"
-#path_to_your_AreaNorm_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_in_CSV_format/AreaNorm_All_Data_Human_IO_RNA.csv"
-#path_to_your_SNRNorm_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_in_CSV_format/SNR_norm_All_Data_Human_IO_RNA.csv"
-#path_to_your_NucleiNorm_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_in_CSV_format/NucleiForm_All_Data_Human_IO_RNA.csv"
+# myargs <- commandArgs(trailingOnly = TRUE)
+# path_to_your_matrix <- myargs[1]
+path_to_your_matrix <- "/media/rmejia/mountme88/Projects/Phosoholipidosis/RNAseq/Expression_Matrix_from_Emmi/lipidosis_RNA_16_STAR_fC_edgeR_matrix_2021_04_23.txt"
 
-path_to_your_annotation_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Protein/Annotation_Protein/Annotation_Protein_Andre_Mai_28_eigth_columns.csv"
+path_to_your_annotation_file <- "/media/rmejia/mountme88/Projects/Phosoholipidosis/RNAseq/Expression_Matrix_from_Emmi/lipidosis_RNA_16_STAR_fC_edgeR_matrix_2021_04_23_HNGC_collapsed_by_median_annotation.tsv"
 
-path_to_your_table_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Protein/ProteinData_in_CSV_format/All_Data_Human_IO_Protein_NucleiNorm.csv"
-# path_to_your_table_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_in_CSV_format/AreaNorm_All_Data_Human_IO_RNA.csv"
-# path_to_your_table_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_in_CSV_format/HKNorm_All_Data_Human_IO_RNA.csv"
-# path_to_your_table_file <- "/media/rmejia/mountme88/Projects/DSP/Data/Data_in_CSV_format/SNR_norm_All_Data_Human_IO_RNA.csv"
-
-Code_path <- "/media/rmejia/mountme88/Projects/DSP/Code/DSP-Oszwald/"  
+Code_path <- "/media/rmejia/mountme88/code/Processing_an_RNAexpression_matrix_from_hyb_n_scanning"  
 # Path where are the rest of your scripts
 
-path_Results_directory <-"/media/rmejia/mountme88/Projects/DSP/Results/Protein/Andre_classification_28_05_2020"
-# path_Results_directory <-"/media/rmejia/mountme88/Projects/DSP/Results/Andre/Nuclei"
-# path_Results_directory <-"/media/rmejia/mountme88/Projects/DSP/Results/Andre/AreaNorm"
-# path_Results_directory <-"/media/rmejia/mountme88/Projects/DSP/Results/Andre/HKNorm"
-#path_Results_directory <-"/media/rmejia/mountme88/Projects/DSP/Results/Andre/SNR"
+path_Results_directory <-"/media/rmejia/mountme88/Projects/Phosoholipidosis/RNAseq/Expression_Matrix_from_Emmi/Results_from_the_exploratory_analysis"
 
-# data_label<- "NucleiNorm"
-# data_label<- "AreaNorm"
-# data_label<- "HKNorm"
-data_label<- "Nuclei"
+data_label<- "Lipidosis_RNA"
 
-colname_4_intra_batch_normalization <- "Scan_ID" # the name of your column to correct
+colname_4_intra_batch_normalization <- "group" # the name of your column to correct
 # please don't use spaces or parenthesis/brackets in the names of your columns
-# The files should have the folowing columns
-# annotation file Morphological_Categories
 
 background_management <- "max"
 background_management <- "mean + 2*sigma"
 background_management <- "no filter"
-
-###################################
-#### Creating your result folders if they doesn't exist yet
-###################################
-dir.create(path_Results_directory , recursive = TRUE)
 
 ###################################
 #### Normalize your paths
@@ -142,42 +117,25 @@ Code_path <- normalizePath(Code_path)
 path_Results_directory  <- normalizePath( path_Results_directory  )
 
 ###################################
+#### Creating your result folders if they doesn't exist yet
+###################################
+dir.create(path_Results_directory , recursive = TRUE)
+
+###################################
 #### Reading the annotation table and the table that cointains the expression data
 ###################################
-table <- read.table( path_to_your_table_file , sep = "\t", header = TRUE )
+Raw_expmat <- read.table( path_to_your_matrix  , sep = "\t", header = TRUE )
 annot <- read.table( path_to_your_annotation_file , sep = "\t", header = TRUE )
-
-###################################
-#### Extracting the Raw expression matrix
-###################################
-colpositions_withgenes <- grep("GAPDH",colnames(table)):dim(table)[2]
-Rawmymatrix_Samp_as_Rows_GenesasCols <- table[ ,colpositions_withgenes]
-Rawmymatrix_Samp_as_Rows_GenesasCols <- as.matrix(Rawmymatrix_Samp_as_Rows_GenesasCols)
-mode( table[,'ROI_ID']) <- "character" 
-rownames( Rawmymatrix_Samp_as_Rows_GenesasCols ) <- annot[,"Unique_ID"]
-
-Raw_expmat <- t(Rawmymatrix_Samp_as_Rows_GenesasCols)
-
-Raw_expmat_Noised <- t(Rawmymatrix_Samp_as_Rows_GenesasCols)
-cutoff_val <- mean(Raw_expmat_Noised[grep("IgG",rownames(Raw_expmat_Noised)),])+ 2*sd(Raw_expmat_Noised[grep("IgG",rownames(Raw_expmat_Noised)),])
-row_indices <- apply( Raw_expmat, 1, function( x ) any( x > cutoff_val ) )
-Raw_expmat <- Raw_expmat_Noised[row_indices,]
-Raw_expmat <- Raw_expmat[- grep("IgG",rownames( Raw_expmat )) , ]
-
-#Raw_expmat <- Raw_expmat_Noised 
-dim(Raw_expmat)
 
 #####################
 # Annotation object for plotting pcas
 ####################
-annot_4_plotting_pca <- cbind( annot[, c("Morph_cat_Andre","Histology_number","Scan_ID","Biopsy_year","Morphological_Categories")])
-annot_4_plotting_pca[,"Histology_number"] <- as.factor(annot_4_plotting_pca[,"Histology_number"])
-annot_4_plotting_pca[,"Biopsy_year"] <- as.factor(annot_4_plotting_pca[,"Biopsy_year"])
+annot_4_plotting_pca <- annot
+annot_4_plotting_pca[,"group"] <- as.factor(annot_4_plotting_pca[,"group"])
 rownames( annot_4_plotting_pca ) <- colnames( Raw_expmat )
-annot_4_plotting_pca$Morphological_Categories <- as.factor(annot_4_plotting_pca$Morphological_Categories)
 
 # loading the function to melt (reshape) the data to preparation for ggplot2 functions
-source( paste0( Code_path,"/","matrix_N_annotdf_2_melteddf.R") )
+source( paste0( Code_path,"/libraries/","matrix_N_annotdf_2_melteddf.R") )
 meltedrawdata <- matrix_N_annotdf_2_melteddf( Raw_expmat , annot )
 head( meltedrawdata )
 
@@ -189,11 +147,10 @@ head( meltedrawdata )
 #########
 ### Visualize your the Raw data
 ########
-source(paste0( Code_path,"/","PCA_box_density_plots.R") )
+source(paste0( Code_path,"/libraries/","PCA_box_density_plots.R") )
 PCA_box_density_plots(  paste0( path_Results_directory,"/Exploratory" )  ,
-                        Raw_expmat ,  annot_4_plotting_pca , meltedrawdata , paste( data_label, "Data as given" ))
+                        Raw_expmat ,  annot_4_plotting_pca , meltedrawdata , paste0( data_label, "Data_as_given" ))
 
-table(annot$Morphological_Categories) # How many categories do you have
 ########################################
 ########
 ########    1. Preprocessing
@@ -202,12 +159,12 @@ table(annot$Morphological_Categories) # How many categories do you have
 ##################
 ## log 2 transformation
 ##################
-expmat_log2 <- log2( Raw_expmat )+1
+expmat_log2 <- log2( Raw_expmat +1)
 melted_expmat_log2 <- matrix_N_annotdf_2_melteddf(expmat_log2 , annot )
 
 # Visualize the data log2 transformed data
 PCA_box_density_plots(  paste0( path_Results_directory,"/Preprocessing" )  ,
-                        expmat_log2 ,  annot_4_plotting_pca , melted_expmat_log2 , paste( data_label, "Log2" ))
+                        expmat_log2 ,  annot_4_plotting_pca , melted_expmat_log2 , paste0( data_label, "_Log2" ))
 
 
 ###################################
