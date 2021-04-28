@@ -1,4 +1,4 @@
-This repository collect tools to process an RNA expression matrix obtained by hybridization and scanning
+This repository collect tools to process an RNA expression matrices obtained by hybridization and scanning
 
 ## Outline of the process
 
