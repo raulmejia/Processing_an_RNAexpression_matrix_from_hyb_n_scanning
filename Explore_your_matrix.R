@@ -2,7 +2,9 @@
 #### Author: Raúl Mejía
 #### The aim of this program is to explore your expression matrix, taking a glimpse of the normalization & batch effects  
 ###################################
-# one column of your annotation file should have the name "group"
+# one column of your annotation file should have the name "group" and other "Unique_ID"
+# the column names of your expression matrix should match with the rows entries of the "group" column in your annotation df (in thar exact order)
+# This script calls the function PCA_box_density_plots_group_Treatment_Cell_line that plot the group Treatment and Cell_line columns from your annotation file (those columns should be in your annotation file)
 ###################################
 #### 0) loading and/or installing required libraries
 ###################################
@@ -91,24 +93,23 @@ if (!require("Rtsne")) {
 #### Data given by the user
 ###################################
 # myargs <- commandArgs(trailingOnly = TRUE)
-# path_to_your_matrix <- myargs[1]
-path_to_your_matrix <- "/media/rmejia/mountme88/Projects/Phosoholipidosis/RNAseq/Expression_Matrix_from_Emmi/lipidosis_RNA_16_STAR_fC_edgeR_matrix_2021_04_23.txt"
+path_to_your_matrix <- myargs[1]
+# path_to_your_matrix <- "/media/rmejia/mountme88/Projects/Phosoholipidosis/RNAseq/Expression_Matrix_from_Emmi/lipidosis_RNA_16_STAR_fC_edgeR_matrix_2021_04_29_to_work_colsymb-n-gene-deleted.tsv"
+# path_to_your_matrix <- "/media/rmejia/mountme88/Projects/Phosoholipidosis/RNAseq/Expression_Matrix_from_Emmi/lipidosis_RNA_16_STAR_fC_edgeR_matrix_2021_04_29-switched-to_work_colsymb-n-gene-deleted_original_order.tsv"
 
-path_to_your_annotation_file <- "/media/rmejia/mountme88/Projects/Phosoholipidosis/RNAseq/Expression_Matrix_from_Emmi/lipidosis_RNA_16_STAR_fC_edgeR_matrix_2021_04_23_HNGC_collapsed_by_median_annotation.tsv"
+path_to_your_annotation_file <- "/media/rmejia/mountme88/Projects/Phosoholipidosis/RNAseq/Expression_Matrix_from_Emmi/annotation_lipidosis_RNA_16_STAR_fC_edgeR_matrix_2021_04_09_Rformat.tsv"
+# path_to_your_annotation_file <- "/media/rmejia/mountme88/Projects/Phosoholipidosis/RNAseq/Expression_Matrix_from_Emmi/annotation_lipidosis_RNA_16_STAR_fC_edgeR_matrix_2021_04_09.tsv"
 
 Code_path <- "/media/rmejia/mountme88/code/Processing_an_RNAexpression_matrix_from_hyb_n_scanning"  
 # Path where are the rest of your scripts
 
 path_Results_directory <-"/media/rmejia/mountme88/Projects/Phosoholipidosis/RNAseq/Expression_Matrix_from_Emmi/Results_from_the_exploratory_analysis"
 
-data_label<- "Lipidosis_RNA"
+# data_label<- "lipidosis_RNA_16_STAR_fC_edgeR_matrix_2021_04_29_to_work_colsymb-n-gene-deleted"
+# data_label<- "switched_org_orderlipidosis_RNA_16_STAR_fC_edgeR_matrix_2021_04_29_to_work_colsymb-n-gene-deleted"
 
 colname_4_intra_batch_normalization <- "group" # the name of your column to correct
 # please don't use spaces or parenthesis/brackets in the names of your columns
-
-background_management <- "max"
-background_management <- "mean + 2*sigma"
-background_management <- "no filter"
 
 ###################################
 #### Normalize your paths
@@ -124,20 +125,19 @@ dir.create(path_Results_directory , recursive = TRUE)
 ###################################
 #### Reading the annotation table and the table that cointains the expression data
 ###################################
-Raw_expmat <- read.table( path_to_your_matrix  , sep = "\t", header = TRUE )
+Raw_expmat <- read.table( path_to_your_matrix  , sep = "\t", header = TRUE)
 annot <- read.table( path_to_your_annotation_file , sep = "\t", header = TRUE )
 
 #####################
 # Annotation object for plotting pcas
 ####################
 annot_4_plotting_pca <- annot
-annot_4_plotting_pca[,"group"] <- as.factor(annot_4_plotting_pca[,"group"])
-rownames( annot_4_plotting_pca ) <- colnames( Raw_expmat )
+annot_4_plotting_pca[ , "group" ] <- as.factor( annot_4_plotting_pca[ , "group" ] )
+colnames(Raw_expmat) ==  annot_4_plotting_pca$Unique_ID
 
 # loading the function to melt (reshape) the data to preparation for ggplot2 functions
 source( paste0( Code_path,"/libraries/","matrix_N_annotdf_2_melteddf.R") )
 meltedrawdata <- matrix_N_annotdf_2_melteddf( Raw_expmat , annot )
-head( meltedrawdata )
 
 ########################################
 ########
@@ -148,7 +148,7 @@ head( meltedrawdata )
 ### Visualize your the Raw data
 ########
 source(paste0( Code_path,"/libraries/","PCA_box_density_plots.R") )
-PCA_box_density_plots(  paste0( path_Results_directory,"/Exploratory" )  ,
+PCA_box_density_plots_group_Treatment_Cell_line(  paste0( path_Results_directory,"/Exploratory" )  ,
                         Raw_expmat ,  annot_4_plotting_pca , meltedrawdata , paste0( data_label, "Data_as_given" ))
 
 ########################################
@@ -163,8 +163,12 @@ expmat_log2 <- log2( Raw_expmat +1)
 melted_expmat_log2 <- matrix_N_annotdf_2_melteddf(expmat_log2 , annot )
 
 # Visualize the data log2 transformed data
-PCA_box_density_plots(  paste0( path_Results_directory,"/Preprocessing" )  ,
+PCA_box_density_plots_group_Treatment_Cell_line(  paste0( path_Results_directory,"/Preprocessing" )  ,
                         expmat_log2 ,  annot_4_plotting_pca , melted_expmat_log2 , paste0( data_label, "_Log2" ))
+
+
+
+
 
 
 ###################################
