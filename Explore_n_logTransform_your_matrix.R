@@ -97,19 +97,21 @@ path_to_your_matrix <- myargs[1]
 # path_to_your_matrix <- "/media/rmejia/mountme88/Projects/Phosoholipidosis/RNAseq/Expression_Matrix_from_Emmi/lipidosis_RNA_16_STAR_fC_edgeR_matrix_2021_04_29_to_work_colsymb-n-gene-deleted.tsv"
 # path_to_your_matrix <- "/media/rmejia/mountme88/Projects/Phosoholipidosis/RNAseq/Expression_Matrix_from_Emmi/lipidosis_RNA_16_STAR_fC_edgeR_matrix_2021_04_29-switched-to_work_colsymb-n-gene-deleted_original_order.tsv"
 
-path_to_your_annotation_file <- "/media/rmejia/mountme88/Projects/Phosoholipidosis/RNAseq/Expression_Matrix_from_Emmi/annotation_lipidosis_RNA_16_STAR_fC_edgeR_matrix_2021_04_09_Rformat.tsv"
-# path_to_your_annotation_file <- "/media/rmejia/mountme88/Projects/Phosoholipidosis/RNAseq/Expression_Matrix_from_Emmi/annotation_lipidosis_RNA_16_STAR_fC_edgeR_matrix_2021_04_09.tsv"
+path_to_your_annotation_file <- myargs[2]
+# path_to_your_annotation_file <- "/media/rmejia/mountme88/Projects/Phosoholipidosis/RNAseq/Expression_Matrix_from_Emmi/annotation_lipidosis_RNA_16_STAR_fC_edgeR_matrix_2021_04_09_Rformat.tsv"
 
-Code_path <- "/media/rmejia/mountme88/code/Processing_an_RNAexpression_matrix_from_hyb_n_scanning"  
-# Path where are the rest of your scripts
+Code_path <- myargs[3] # Path where are the rest of your scripts
+# Code_path <- "/media/rmejia/mountme88/code/Processing_an_RNAexpression_matrix_from_hyb_n_scanning"  
 
-path_Results_directory <-"/media/rmejia/mountme88/Projects/Phosoholipidosis/RNAseq/Expression_Matrix_from_Emmi/Results_from_the_exploratory_analysis"
+path_Results_directory <- myargs[4]
+# path_Results_directory <-"/media/rmejia/mountme88/Projects/Phosoholipidosis/RNAseq/Expression_Matrix_from_Emmi/Results_from_the_exploratory_analysis"
 
+data_label <- myargs[5]
 # data_label<- "lipidosis_RNA_16_STAR_fC_edgeR_matrix_2021_04_29_to_work_colsymb-n-gene-deleted"
 # data_label<- "switched_org_orderlipidosis_RNA_16_STAR_fC_edgeR_matrix_2021_04_29_to_work_colsymb-n-gene-deleted"
 
-colname_4_intra_batch_normalization <- "group" # the name of your column to correct
-# please don't use spaces or parenthesis/brackets in the names of your columns
+colname_4_intra_batch_normalization <- myargs[6] # please don't use spaces or parenthesis/brackets in the names of your columns
+# colname_4_intra_batch_normalization <- "group" # the name of your column to correct
 
 ###################################
 #### Normalize your paths
@@ -167,5 +169,3 @@ PCA_box_density_plots_group_Treatment_Cell_line(  paste0( path_Results_directory
                         expmat_log2 ,  annot_4_plotting_pca , melted_expmat_log2 , paste0( data_label, "_Log2" ))
 
 write.table(expmat_log2, file= paste0(path_to_your_matrix ,"_log2.tsv") , sep="\t", row.names = TRUE, col.names = TRUE )
-
-
