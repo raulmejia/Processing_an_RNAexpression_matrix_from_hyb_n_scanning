@@ -8,6 +8,11 @@ This repository collect tools to process an RNA expression matrices obtained by 
 
 #### Collapsing
 
+#### tresholds
+
+SD
+house keeping / negative probes
+
 #### Analysis
 
 - DEG  
