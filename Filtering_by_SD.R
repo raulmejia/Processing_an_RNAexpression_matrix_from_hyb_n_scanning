@@ -1,6 +1,8 @@
 # This program eliminates the features that doesn´t fulfill the criteria
 # The criteria is to have a SD / SD mx < chosen parameter
 # The SD is calculated by condition
+# Your colnames and the ID_Unique column from your annotation file should be the same and in the same order
+# Your SD wil be calculated according the "group" column in your annot file
 ###################################
 ###################################
 #### 0) loading and/or installing required libraries
@@ -17,6 +19,11 @@ if (!require("argparse")) {
   install.packages("argparse", ask =FALSE)
   library("argparse")
 }
+if (!require("limma")) {
+  install.packages("limma", ask =FALSE)
+  library("limma")
+}
+
 
 ###################################
 #### Data given by the user
@@ -56,8 +63,31 @@ if(all(colnames(mymatrix) ==  annotdf$Unique_ID) != TRUE ){
   break()
 }
 
+#############
+## Reading the data
+#############
+
+
+?split
+mymatrix_splited <- split(t(mymatrix) ,  as.factor(annotdf$group))
+
+wholeSDs<- apply(mymatrix,1,sd)
+
+ratio_absoluteSDs <- wholeSDs/max(wholeSDs)
+
+plot(ratio_absoluteSDs)
+
+apply(mymatrix_splited,  ,  )
+plotDensities(t(mymatrix))
+plotDensities(mymatrix, legend = FALSE)
+
+?plotDensities
+
+length(wholeSDs)
+dim(mymatrix)
+head(mymatrix_splited)
 
 
 
 
-split( )
+
