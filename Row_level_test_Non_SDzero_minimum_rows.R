@@ -6,6 +6,8 @@
 #
 # to do:
 # Set the default in an automatic way: Rowlevel_Maximum_number_of_groups_with_SDzero <- length(unique(annotdf$group)) - 2
+#
+# think how to change the program to be sure that only applies for zero values
 ###################################
 ###################################
 #### 0) loading and/or installing required libraries
@@ -41,7 +43,7 @@ Code_path <- myargs[3] # Path where are the rest of your scripts
 # Code_path <- "/media/rmejia/mountme88/code/Processing_an_RNAexpression_matrix_from_hyb_n_scanning"  
 
 path_Results_directory <- myargs[4]
-# path_Results_directory <-"/media/rmejia/mountme88/Projects/Phosoholipidosis/RNAseq/Expression_Matrix_from_Emmi/Box_Plot_particular_Genes"
+# path_Results_directory <-"/media/rmejia/mountme88/Projects/Phosoholipidosis/RNAseq/Expression_Matrix_from_Emmi/rowlevel_test_SDzero_minimum_groups"
 
 Rowlevel_Maximum_number_of_groups_with_SDzero <- myargs[5]
 # The Default is to the number of groups minus 2 (In other words at least 2 non-SDzero at rowLevel)
@@ -96,12 +98,13 @@ print("number_of_original_rows"); print(dim(mymatrix) )
 print("number_of_lost_rows"); print(dim(Matrix_with_The_lost_rows))
 print("percentage_of_retained_rows"); print(paste(dim(mymatrix_SDzero_per_condition_filtered  )[1]/dim(mymatrix)[1] *100 ,"%") )
 
+
 # rows_that_didn´t pass the filter of zeroSD in Minimum group per condition 
 
-failed_path <- paste0( path_to_your_matrix, "_rows_that_failed_the_non_SDzero-test_in_a_minimum_of_",Rowlevel_Maximum_number_of_groups_with_SDzero,"_groups.tsv")
-write.table(Matrix_with_The_lost_rows , file=failed_path , sep="\t", col.names=TRUE, row.names= TRUE)
+failed_path <- paste0( path_Results_directory,"/",basename(path_to_your_matrix), "_rows_that_failed_the_non_SDzero-test_in_a_minimum_of_",Rowlevel_Maximum_number_of_groups_with_SDzero,"_groups.tsv")
+write.table( Matrix_with_The_lost_rows , file=failed_path , sep="\t", col.names=TRUE, row.names= TRUE)
 
-successful_path <- paste0( path_to_your_matrix, "_successful_rows_non_SDzero-test_in_a_minimum_of_",Rowlevel_Maximum_number_of_groups_with_SDzero,"_groups.tsv")
+successful_path <- paste0( path_Results_directory,"/",basename(path_to_your_matrix) , "_successful_rows_non_SDzero-test_in_a_minimum_of_", Rowlevel_Maximum_number_of_groups_with_SDzero,"_groups.tsv")
 write.table( mymatrix_SDzero_per_condition_filtered , file= successful_path , sep="\t", col.names=TRUE, row.names= TRUE ) 
 
 
