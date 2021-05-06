@@ -118,13 +118,13 @@ path_Results_directory  <- normalizePath( path_Results_directory  )
 ###################################
 #### Reading the annotation table and the table that cointains the expression data
 ###################################
-Raw_expmat <- read.table( path_to_your_matrix  , sep = "\t", header = TRUE)
-annot <- read.table( path_to_your_annotation_file , sep = "\t", header = TRUE )
+mymatrix <- read.table( path_to_your_matrix  , sep = "\t", header = TRUE)
+annotdf <- read.table( path_to_your_annotation_file , sep = "\t", header = TRUE )
 
 #####################
 # Annotation object for plotting pcas
 ####################
-annot_4_plotting_pca <- annot
+annot_4_plotting_pca <- annotdf
 annot_4_plotting_pca[ , "group" ] <- as.factor( annot_4_plotting_pca[ , "group" ] )
 
 if(all(colnames(mymatrix) ==  annotdf$Unique_ID) == TRUE ){ 
@@ -137,7 +137,9 @@ if(all(colnames(mymatrix) ==  annotdf$Unique_ID) != TRUE ){
 
 # loading the function to melt (reshape) the data to preparation for ggplot2 functions
 source( paste0( Code_path,"/libraries/","matrix_N_annotdf_2_melteddf.R") )
-meltedrawdata <- matrix_N_annotdf_2_melteddf( Raw_expmat , annot )
+meltedrawdata <- matrix_N_annotdf_2_melteddf( mymatrix , annotdf )
+
+head(meltedrawdata , n = 12)
 
 ########################################
 ########
@@ -151,8 +153,7 @@ source(paste0( Code_path,"/libraries/","PCA_box_density_plots.R") )
 PCA_box_density_plots_group_Treatment_Cell_line(  paste0( path_Results_directory,"/Exploratory" )  ,
                                                   Raw_expmat ,  annot_4_plotting_pca , meltedrawdata , paste0( data_label, "Data_as_given" ))
 
-
-data=melt(as.data.frame(Raw_expmat))
+data = melt(as.data.frame(Raw_expmat))
 
 looking for a density plot thoug ggplot 2 
 https://stackoverflow.com/questions/38856425/legend-not-plotting-in-multiple-densities-plot-using-ggplot2
