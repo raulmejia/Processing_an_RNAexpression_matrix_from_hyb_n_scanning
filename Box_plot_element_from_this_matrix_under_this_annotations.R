@@ -1,6 +1,11 @@
 # Input a numeric matrix, an annotation file, and a row of the matrix that we want to generate the box plot
 # One column in your annot file should be called Unique_ID
 # The name "values" is reserved for the columns 
+# This script has the following restriction: expmatrix´s colnames and Unique_ID from your annotation file match and in the same order,
+#     Maybe you can edit it to ask only for the same names but not in the same order
+#
+# Example of use:
+# Rscript Box_plot_element_from_this_matrix_under_this_annotations.R /path/your_matrix.tsv /path/your_annotation_file.tsv /path/to/code /folder/path/for/your/results Exact_Name_of_your_row Title_for_your_plot Name_of_the_source_matrix_to_stamp_it_in_the_pdf
 ###################################
 ###################################
 #### 0) loading and/or installing required libraries
@@ -17,7 +22,18 @@ if (!require("argparse")) {
   install.packages("argparse", ask =FALSE)
   library("argparse")
 }
-
+if (!require("tidyverse")) {
+  BiocManager::install("tidyverse", ask =FALSE)
+  library("tidyverse")
+}
+if (!require("hrbrthemes")) {
+  BiocManager::install("hrbrthemes", ask =FALSE)
+  library("hrbrthemes")
+}
+if (!require("viridis")) {
+  BiocManager::install("viridis", ask =FALSE)
+  library("viridis")
+}
 ###################################
 #### Data given by the user
 ###################################
@@ -41,6 +57,9 @@ data_label <- myargs[6]
 # data_label<- "ABCA4"
 # data_label<- "switched_org_orderlipidosis_RNA_16_STAR_fC_edgeR_matrix_2021_04_29_to_work_colsymb-n-gene-deleted"
 
+label_matrix_of_origin <- myargs[7]
+# label_matrix_of_origin <- "lipidosis_RNA_16_STAR_fC_edgeR_matrix_switched_log2"
+
 #############
 ## Reading the data
 #############
@@ -51,19 +70,32 @@ annotdf <- read.table(path_to_your_annotation_file , sep = "\t", header = TRUE )
 
 values_toplot <- mymatrix[grep(row_to_plot , rownames(mymatrix) ), ]
 
+# Check if the annotation file is appropiate
 if( all(annotdf[,"Unique_ID"] == names(values_toplot)) == TRUE){ 
-  print("the names match")
+  print("expmatrix´s colnames and Unique_ID from your annotation file match and in the same order")
 }
 
 if( all(annotdf[,"Unique_ID"] != names(values_toplot)) == TRUE){ 
   print("ERROR! the names doesn't match")
 }
+
 rownames(annotdf) <- names( values_toplot )
 object_to_plot <- data.frame( as.numeric(values_toplot) , annotdf )
 colnames(object_to_plot)[1] <- "values"
 
-ggplot(object_to_plot, aes(x=group, y=values, fill=Treatment)) + 
-  geom_boxplot() + ggtitle(data_label) + theme_grey(base_size = 22)
+pdf_file_path <-paste0( path_Results_directory , "/" ,"Plotted-row_",row_to_plot,"_Labeled-as_", data_label ,"_From-the-matrix__",label_matrix_of_origin , ".pdf" )
 
+pdf(file= pdf_file_path )
+ggplot(object_to_plot, aes(x=group, y=values, fill=Treatment)) + 
+  geom_boxplot() + 
+  scale_fill_viridis(discrete = TRUE, alpha=0.4) +
+  geom_jitter(color="red", size=1.5, alpha=0.9) +
+  theme_ipsum() +
+  theme(
+    legend.position="none",
+    plot.title = element_text(size=11)
+  ) +
+  ggtitle(data_label) + theme_grey(base_size = 22)
+dev.off()
 
 
