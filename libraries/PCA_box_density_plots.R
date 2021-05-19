@@ -1,9 +1,10 @@
 
-#exp_matrix <- Raw_expmat
-#annotdf <- annot_4_plotting_pca
-#melteddf <- meltedrawdata
-#  label4title <- data_label
-#  result_dir <- path_Results_directory
+#  exp_matrix <-  mymatrix
+#  annotdf <- annot_4_plotting_pca
+#  melteddf <- meltedrawdata
+#  label4title <- label
+#  result_dir <- paste0( outputfolder,"/PCA_2D" )
+# perplexity <- 5 # (default)
   
 PCA_box_density_plots_group_Treatment_Cell_line <- function( result_dir, exp_matrix, annotdf, melteddf, label4title  ){
   exp_matrix_T <- t(exp_matrix)
@@ -22,7 +23,7 @@ PCA_box_density_plots_group_Treatment_Cell_line <- function( result_dir, exp_mat
   #pheatmap( exp_matrix ,cutree_cols = 5,  annotation_col  = annotdf[,c("Histology_number","Morphological_Categories","Scan_ID" )], fontsize = 4) 
   #pheatmap( exp_matrix ,cutree_cols = 5, col = brewer.pal(  length(table(annotdf[,"group"])) ,"Set3"),  annotation_col  = annotdf[,c("group" )], fontsize = 4) 
   
-  tsne_model_1 = Rtsne(  t(exp_matrix)  , check_duplicates=FALSE, pca=TRUE, perplexity=5, theta=0.5, dims=2)
+  tsne_model_1 = Rtsne(  t(exp_matrix)  , check_duplicates=FALSE, pca=TRUE, perplexity=4, theta=0.5, dims=2)
   d_tsne_1 = as.data.frame( tsne_model_1$Y )
   
   d_tsne_1_simplecols <- cbind(d_tsne_1, annotdf$group)
