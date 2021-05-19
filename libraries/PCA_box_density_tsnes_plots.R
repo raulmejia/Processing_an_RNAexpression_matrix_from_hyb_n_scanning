@@ -29,8 +29,6 @@ PCA_box_density_tsnes_plots <- function( result_dir, exp_matrix, annotdf, melted
     print(autoplot( prcomp( exp_matrix_T ), data = annotdf, colour=myfill)+
                       ggtitle(paste0(label4title )) )
   }
-  print(autoplot( prcomp( exp_matrix_T ), data = annotdf, colour= 'group') +
-          ggtitle(paste(label4title )))
   
   ##############
   # Boxplots
