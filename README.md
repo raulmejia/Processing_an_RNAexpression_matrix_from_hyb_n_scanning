@@ -6,6 +6,8 @@ This repository collect tools to process an RNA expression matrices obtained by 
 
 #### Translation
 
+write the purpose and an example of the command
+
 #### Collapsing
 
 #### tresholds
@@ -18,3 +20,4 @@ house keeping / negative probes
 - DEG  
 - Pathway enrichment
 - Boxplot selected genes
+
