@@ -1,10 +1,10 @@
-###
+#####################
 # this program plots a PCA, boxplot, denstity plot and Tsne for each of the meaningful variables* that are included in your annoation file
 # your annotation file needs a column "Unique_ID"
-
+#
 # Note: 
 # Search what should be the apropriate perplexity number for the tsnes
-
+####################
 #  exp_matrix <-  mymatrix
 #  annotdf <- annot_4_plotting_pca
 #  melteddf <- meltedrawdata
