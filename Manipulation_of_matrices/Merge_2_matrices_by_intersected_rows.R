@@ -55,10 +55,10 @@ args <- parser$parse_args()
 #############################
 ## The program starts
 #############################
-inputA <-read.table( file=args$infileA, stringsAsFactors = FALSE )
+inputA <-read.table( file=args$infileA, stringsAsFactors = FALSE , check.names=FALSE)
 # inputA <-read.table(file="/media/rmejia/mountme88/Projects/Maja-covid/Data/Controls/Ncounter_Platform/Kidney/toy_for_treshold.txt", stringsAsFactors = FALSE)
 
-inputB <-read.table( file=args$infileB, stringsAsFactors = FALSE )
+inputB <-read.table( file=args$infileB, stringsAsFactors = FALSE , check.names=FALSE)
 # inputB <-read.table(file="/media/rmejia/mountme88/Projects/Maja-covid/Data/Controls/Ncounter_Platform/Kidney/toy_for_treshold_B.txt", stringsAsFactors = FALSE)
 
 path2save <- args$outputfile
