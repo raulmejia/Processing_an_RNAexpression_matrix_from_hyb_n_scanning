@@ -57,7 +57,7 @@ args <- parser$parse_args()
 ## The program starts
 #############################
 your_feature <- "POS_E"
-inputdf <-read.table( file=args$inputfile, stringsAsFactors = FALSE )
+inputdf <-read.table( file=args$inputfile, stringsAsFactors = FALSE , check.names=FALSE)
 # inputdf <-read.table(file="/media/rmejia/mountme88/Projects/Maja-covid/Data/Controls/Ncounter_Platform/Kidney/toy_for_treshold.txt", stringsAsFactors = FALSE)
 
 path2save <- args$outputfile

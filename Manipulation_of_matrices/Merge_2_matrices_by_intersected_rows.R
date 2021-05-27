@@ -6,7 +6,9 @@
 # rowname3  45      0
 # NEG_Prob1 0       12
 # POS_E     2       1
-## Notes
+#
+# Example of use: Rscript /path/Merge_2_matrices_by_intersected_rows.R -A /path/path2/some_expmatrix.tsv -B /path1/path3/another_matrix2.tsv -o /path3/merged_matrices.tsv
+## Notes:
 ## Make it flexible in order to change the thresholds (number of samples) and minimum value 
 ############################## 
 ## Required libraries

@@ -9,6 +9,7 @@
 # POS_E     2       1
 ## Notes
 ## Make it flexible in order to change the thresholds (number of samples) and minimum value 
+## Currently the thresold is 1
 ############################## 
 ## Required libraries
 ##############################

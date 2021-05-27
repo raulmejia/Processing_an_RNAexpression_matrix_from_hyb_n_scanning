@@ -12,6 +12,23 @@
 #  result_dir <- paste0( outputfolder,"/PCA_2D" )
 #  perplexity <- 5 # (default)
 
+#############
+##A required function
+#############
+colors_4_plotDensities <- function( someannotdf , colname_from_your_annordf ){
+  group_uniquenames_length <- length( unique( someannotdf[,colname_from_your_annordf] ) ) # length of the uniquenames
+  rainbow_colors <- rainbow( group_uniquenames_length ) # color to substitute those names
+  rainbow_colors_4_plot <- rep( "NA" , length( someannotdf[,colname_from_your_annordf] )   )
+  for( k in 1:group_uniquenames_length) {
+    positions_K <- someannotdf[,colname_from_your_annordf] == unique( someannotdf[,colname_from_your_annordf] )[k]
+    rainbow_colors_4_plot[positions_K] <- rainbow_colors[k] 
+  }
+  return(rainbow_colors_4_plot)
+}
+
+####
+# The program starts
+####
 PCA_box_density_tsnes_plots <- function( result_dir, exp_matrix, annotdf, melteddf, label4title  ){
   exp_matrix_T <- t(exp_matrix)
   dir.create( result_dir, recursive = TRUE )
@@ -47,6 +64,20 @@ PCA_box_density_tsnes_plots <- function( result_dir, exp_matrix, annotdf, melted
       geom_density_ridges() + 
       ggtitle(label4title)
     print(plot1) # Density plots
+  }
+  ####
+  ## Make the density plots overlaped like limma does
+  ####
+  for( myfill in meaningful_variables ){
+    plot1 <- ggplot(melteddf ) + 
+      geom_density(  aes_string( x="value", group = "Unique_ID" , color=myfill ) ) + 
+      ggtitle(label4title)
+    print(plot1) # Density plots
+  }
+  for( myfill in meaningful_variables ){
+    colors_from_rainbow <- colors_4_plotDensities(annotdf , myfill )
+    plotDensities(exp_matrix, col = colors_from_rainbow )
+    #print( plotDensities(exp_matrix, col = colors_from_rainbow ) )  
   }
   
   ##############

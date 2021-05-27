@@ -1,4 +1,4 @@
-# This script performs quantile normalization by batches according to an annotation file given by the user (both should be tsv files)
+# This script tries to correct the batch effect throug SVA 
 # 
 # Annotation file:
 #   One column of your annotation file should be named "Unique_ID" and must match in exaclty the same order with the rownames of the expression matrix
@@ -23,21 +23,9 @@ if (!require("BiocManager")) {
   install.packages("BiocManager", ask =FALSE)
   library("BiocManager")
 }
-if (!require("pheatmap")) {
-  BiocManager::install("pheatmap", ask =FALSE)
-  library("pheatmap")
-}
-if (!require("ggplot2")) {
-  BiocManager::install("ggplot2", ask =FALSE)
-  library("ggplot2")
-}
 if (!require("argparse")) {
   install.packages("argparse", ask =FALSE)
   library("argparse")
-}
-if (!require("ggfortify")) {
-  install.packages("ggfortify", ask =FALSE)
-  library("ggfortify")
 }
 if (!require("sva")) {
   BiocManager::install("sva", ask =FALSE)
@@ -47,25 +35,9 @@ if (!require("limma")) {
   BiocManager::install("limma", ask =FALSE)
   library("limma")
 }
-if (!require("smooth")) {
-  install.packages("smooth", ask =FALSE)
-  library("smooth")
-}
-if (!require("RColorBrewer")) {
-  install.packages("RColorBrewer", ask =FALSE)
-  library("RColorBrewer")
-}
-if (!require("plotrix")) {
-  install.packages("plotrix", ask =FALSE)
-  library("plotrix")
-}
 if (!require("reshape2")) {
   install.packages("reshape2", ask =FALSE)
   library("reshape2")
-}
-if (!require("cowplot")) {
-  install.packages("cowplot", ask =FALSE)
-  library("cowplot")
 }
 if (!require("preprocessCore")) {
   BiocManager::install("preprocessCore", ask =FALSE)
@@ -74,21 +46,6 @@ if (!require("preprocessCore")) {
 if (!require("affy")) {
   BiocManager::install("affy", ask =FALSE)
   library("affy")
-}
-if (!require("oligo")) {
-  BiocManager::install("oligo", ask =FALSE)
-  library("oligo")
-}
-if (!require("Rtsne")) {
-  BiocManager::install("Rtsne", ask =FALSE)
-  library("Rtsne")
-}
-#if (!require("M3C")) {
-#BiocManager::install("M3C", ask =FALSE)
-#library("M3C")}
-if (!require("tidyverse")) {
-  BiocManager::install("tidyverse", ask =FALSE)
-  library("tidyverse")
 }
 
 ############################## 
@@ -105,7 +62,7 @@ parser$add_argument("-q", "--quietly", action="store_false",
 parser$add_argument("-m", "--matrix", type="character", 
                     help="input matrix")
 parser$add_argument( "-c", "--code", type="character" , 
-                    help="path to your code file" )
+                     help="path to your code file" )
 parser$add_argument("-a", "--annotation", type="character", 
                     help="input annotation file")
 parser$add_argument("-b", "--batches", type="character", 
@@ -121,13 +78,13 @@ args <- parser$parse_args()
 ## The program starts
 #############################
 inmatrix <-read.table( file=args$matrix, stringsAsFactors = FALSE )
-# inmatrix <-read.table(file="/media/rmejia/mountme88/Projects/Maja-covid/Data/Controls/Ncounter_Platform/Kidney/toys_merged.txt", stringsAsFactors = FALSE)
+# inmatrix <-read.table(file="/media/rmejia/mountme88/Projects/Maja-covid/Data/Controls/Ncounter_Platform/Kidney/toys_merged_quantile_norm_by_batch.txt", stringsAsFactors = FALSE)
 
 annot <-read.table( file=args$annotation, stringsAsFactors = FALSE )
 # annot <-read.table(file="/media/rmejia/mountme88/Projects/Maja-covid/Data/Controls/Ncounter_Platform/Kidney/toys_merged_annotations.tsv", stringsAsFactors = FALSE)
 
 path2save <- args$outputfile
-#  path2save <- "/media/rmejia/mountme88/Projects/Maja-covid/Data/Controls/Ncounter_Platform/Kidney/toys_merged_quantile_norm_by_batch.txt"
+#  path2save <- "/media/rmejia/mountme88/Projects/Maja-covid/Data/Controls/Ncounter_Platform/Kidney/toys_merged_quantile_norm_by_batch_Batch_correction_through_SVA.txt"
 
 code_path <- args$code
 # code_path <- "/media/rmejia/mountme88/code/Processing_an_RNAexpression_matrix_from_hyb_n_scanning/"
@@ -151,21 +108,20 @@ if(all(colnames(inmatrix) ==  annot$Unique_ID) != TRUE ){
 }
 
 ############
-#### Splitting up in a list of submatrices according to the given batches
+#### running SVA
 ###########
-source( paste0( code_path,"/libraries/","Matrix_2_list_of_sub_matrices.R" ) )
-batches <- as.factor( annot [ , batches_col] ) # We need this 
-list_of_submatrices <- Matrix_2_list_of_sub_matrices( batches , inmatrix )
+mypheno <- as.data.frame(annot[,batches_col])
+rownames(mypheno) <- annot[,"Unique_ID"]
+colnames(mypheno) <- c("batch")
 
-################################
-###### quantile normalization  (normalizeQuantiles) batch Separated
-################################
+mypheno$batch <- as.factor(mypheno$batch)
+batch <- mypheno$batch
+modcombat <- model.matrix(~1, data=mypheno)
 
-list_splitd_qnorm <- lapply(  list_of_submatrices ,  normalizeQuantiles)
-mat_qnorm_sep_by_batch <- do.call(cbind, list_splitd_qnorm)
+combat_qnormBsep = ComBat(dat = inmatrix , batch=batch , mod=modcombat, par.prior=TRUE, prior.plots=FALSE)
 
 
 ###########################
 #   Saving the results  ###
 ###########################
-write.table( mat_qnorm_sep_by_batch  , file = path2save , row.names = TRUE, sep="\t", col.names = TRUE )
+write.table( combat_qnormBsep  , file = path2save , row.names = TRUE, sep="\t", col.names = TRUE )
