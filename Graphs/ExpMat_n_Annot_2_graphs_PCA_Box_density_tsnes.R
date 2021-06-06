@@ -109,10 +109,12 @@ args <- parser$parse_args( )
 mymatrix <-read.table( file=args$matrix, stringsAsFactors = FALSE , check.names = FALSE)
 #  mymatrix <-read.table(file="/media/rmejia/mountme88/Projects/Maja-covid/Data/Controls/Ncounter_Platform/Kidney/toys_merged_quantile_norm_by_batch.txt", stringsAsFactors = FALSE, check.names = FALSE)
 #  mymatrix <-read.table(file="/media/rmejia/mountme88/Projects/Maja-covid/Data/Merged/Exp_Mat_GSE115989_MNHK.tsv", stringsAsFactors = FALSE, check.names = FALSE)
+# mymatrix <-read.table(file="/media/rmejia/mountme88/Projects/Maja-covid/Data/Merged/Exp_Mat_MK_GSE113342LE_GSE115989RJ_MajaL_GSE89880.txt", stringsAsFactors = FALSE, check.names = FALSE)
 
 annotdf <-read.table( file=args$annotation, stringsAsFactors = FALSE )
 # annotdf <-read.table(file="/media/rmejia/mountme88/Projects/Maja-covid/Data/Controls/Ncounter_Platform/Kidney/toys_merged_annotations.tsv", stringsAsFactors = FALSE)
 # annotdf <-read.table(file="/media/rmejia/mountme88/Projects/Maja-covid/Data/Merged/GSE115989_MNHK_AnnotFile.tsv", stringsAsFactors = FALSE)
+# annotdf <-read.table(file="/media/rmejia/mountme88/Projects/Maja-covid/Data/Merged/Annot_MK_GSE113342_GSE115989_ML_GSE89880.tsv", stringsAsFactors = FALSE)
 
 code_path <- args$code
 # code_path <- "/media/rmejia/mountme88/code/Processing_an_RNAexpression_matrix_from_hyb_n_scanning/"
@@ -123,6 +125,7 @@ your_main_groups <- args$maingroups # your_main_groups <- "group"
 outputfolder <- args$outputfolder
 #  outputfolder <- "/media/rmejia/mountme88/Projects/Maja-covid/Results/toy_merged_quantiles_normalized_per_batch/"
 #  outputfolder <- "/media/rmejia/mountme88/Projects/Maja-covid/Results/GSE115989_MNHK/"
+#  outputfolder <- "/media/rmejia/mountme88/Projects/Maja-covid/Results/Annot_MK_GSE113342_GSE115989_ML_GSE89880"
 
 dir.create(outputfolder, recursive = TRUE)
 outputfolder <- normalizePath(outputfolder)

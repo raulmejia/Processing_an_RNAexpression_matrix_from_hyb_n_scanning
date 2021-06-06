@@ -12,6 +12,9 @@
 # NEG_Prob1 0       12
 # POS_E     2       1
 #
+# Example of run:
+# Rscript /path1/Quantile_normalization_by_batches.R -m /path2/Exp_Mat.tsv -c /path2-code/Processing_an_RNAexpression_matrix_from_hyb_n_scanning/ -a /path3/Annotation.tsv -b Batch_definitions-A-Colname_from_your-Annotation-file -o /path4/to_your_results
+
 # Put a general description of the input files in the README of the repository
 ###################################
 # The files who contain the pretended matrices should use "." Decimal insted of ","
@@ -23,33 +26,13 @@ if (!require("BiocManager")) {
   install.packages("BiocManager", ask =FALSE)
   library("BiocManager")
 }
-if (!require("pheatmap")) {
-  BiocManager::install("pheatmap", ask =FALSE)
-  library("pheatmap")
-}
-if (!require("ggplot2")) {
-  BiocManager::install("ggplot2", ask =FALSE)
-  library("ggplot2")
-}
 if (!require("argparse")) {
   install.packages("argparse", ask =FALSE)
   library("argparse")
 }
-if (!require("ggfortify")) {
-  install.packages("ggfortify", ask =FALSE)
-  library("ggfortify")
-}
-if (!require("sva")) {
-  BiocManager::install("sva", ask =FALSE)
-  library("sva")
-}
 if (!require("limma")) {
   BiocManager::install("limma", ask =FALSE)
   library("limma")
-}
-if (!require("smooth")) {
-  install.packages("smooth", ask =FALSE)
-  library("smooth")
 }
 if (!require("RColorBrewer")) {
   install.packages("RColorBrewer", ask =FALSE)
@@ -59,37 +42,13 @@ if (!require("plotrix")) {
   install.packages("plotrix", ask =FALSE)
   library("plotrix")
 }
-if (!require("reshape2")) {
-  install.packages("reshape2", ask =FALSE)
-  library("reshape2")
-}
-if (!require("cowplot")) {
-  install.packages("cowplot", ask =FALSE)
-  library("cowplot")
-}
-if (!require("preprocessCore")) {
-  BiocManager::install("preprocessCore", ask =FALSE)
-  library("preprocessCore")
-}
 if (!require("affy")) {
   BiocManager::install("affy", ask =FALSE)
   library("affy")
 }
-if (!require("oligo")) {
-  BiocManager::install("oligo", ask =FALSE)
-  library("oligo")
-}
-if (!require("Rtsne")) {
-  BiocManager::install("Rtsne", ask =FALSE)
-  library("Rtsne")
-}
 #if (!require("M3C")) {
 #BiocManager::install("M3C", ask =FALSE)
 #library("M3C")}
-if (!require("tidyverse")) {
-  BiocManager::install("tidyverse", ask =FALSE)
-  library("tidyverse")
-}
 
 ############################## 
 ## Data given by the user
@@ -120,11 +79,11 @@ args <- parser$parse_args()
 #############################
 ## The program starts
 #############################
-inmatrix <-read.table( file=args$matrix, stringsAsFactors = FALSE )
-# inmatrix <-read.table(file="/media/rmejia/mountme88/Projects/Maja-covid/Data/Controls/Ncounter_Platform/Kidney/toys_merged.txt", stringsAsFactors = FALSE)
+inmatrix <-read.table( file=args$matrix, stringsAsFactors = FALSE , check.names = FALSE)
+# inmatrix <-read.table(file="/media/rmejia/mountme88/Projects/Maja-covid/Data/Merged/Exp_Mat_MK_GSE113342LE_GSE115989RJ_MajaL_GSE89880.txt", stringsAsFactors = FALSE , check.names = FALSE )
 
-annot <-read.table( file=args$annotation, stringsAsFactors = FALSE )
-# annot <-read.table(file="/media/rmejia/mountme88/Projects/Maja-covid/Data/Controls/Ncounter_Platform/Kidney/toys_merged_annotations.tsv", stringsAsFactors = FALSE)
+annot <-read.table( file=args$annotation, stringsAsFactors = FALSE , check.names = FALSE )
+# annot <-read.table(file="/media/rmejia/mountme88/Projects/Maja-covid/Data/Merged/Annot_MK_GSE113342_GSE115989_ML_GSE89880.tsv", stringsAsFactors = FALSE , check.names = FALSE )
 
 path2save <- args$outputfile
 #  path2save <- "/media/rmejia/mountme88/Projects/Maja-covid/Data/Controls/Ncounter_Platform/Kidney/toys_merged_quantile_norm_by_batch.txt"
@@ -135,7 +94,7 @@ code_path <- normalizePath(code_path)
 
 batches_col <- args$batches
 # batches_col <- "group"
-
+# batches_col <- "Experiment"
 #############################
 ## The program starts
 #############################
@@ -160,12 +119,12 @@ list_of_submatrices <- Matrix_2_list_of_sub_matrices( batches , inmatrix )
 ################################
 ###### quantile normalization  (normalizeQuantiles) batch Separated
 ################################
-
 list_splitd_qnorm <- lapply(  list_of_submatrices ,  normalizeQuantiles)
 mat_qnorm_sep_by_batch <- do.call(cbind, list_splitd_qnorm)
 
+resulting_matrix <-  mat_qnorm_sep_by_batch[,colnames( inmatrix)] 
 
 ###########################
 #   Saving the results  ###
 ###########################
-write.table( mat_qnorm_sep_by_batch  , file = path2save , row.names = TRUE, sep="\t", col.names = TRUE )
+write.table( resulting_matrix   , file = path2save , row.names = TRUE, sep="\t", col.names = TRUE )
