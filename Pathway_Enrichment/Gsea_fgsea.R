@@ -28,7 +28,6 @@
 #                     help="output folder where you want to store your results")
 # 
 # 
-# 
 
 if (!require("BiocManager")) {
   install.packages("BiocManager", ask =FALSE)
@@ -92,14 +91,14 @@ source(paste0(code_path,"/GSEAgudenas.R"))
 
 df_with_my_ranking_path <- args$dataframe
 #df_with_my_ranking_path <- "/home/rmejia/Downloads/toy/pone.0145322.s007_4.csv"
-#df_with_my_ranking_path <- "/home/rmejia/Downloads/toy/pone.0145322.s007.tsv"
-#df_with_my_ranking <- read.table(file=df_with_my_ranking_path, sep = "\t")
+#####df_with_my_ranking_path <- "/home/rmejia/Downloads/toy/pone.0145322.s007.tsv"
+#####df_with_my_ranking <- read.table(file=df_with_my_ranking_path, sep = "\t")
 
 GO_filepath <- args$pathwaysfile
-#GO_filepath <- "/media/rmejia/mountme88/Common_and_Virgin_Data/Common_Data_Across_Projects/Pathways/MsigDB/C5_GeneOntology_Biological_Process/c5.go.bp.v7.4.symbols.gmt"
+# GO_filepath <- "/media/rmejia/mountme88/Common_and_Virgin_Data/Common_Data_Across_Projects/Pathways/MsigDB/C5_GeneOntology_Biological_Process/c5.go.bp.v7.4.symbols.gmt"
 
 Column_with_your_rankins <- args$columnrankings
-#Column_with_your_rankins <- "DESeq2.Log2.Fold.Change"
+# Column_with_your_rankins <- "DESeq2.Log2.Fold.Change"
 
 mysmalllabel4title<- args$label
 # mysmalllabel4title <- "WT--vs--DT"
