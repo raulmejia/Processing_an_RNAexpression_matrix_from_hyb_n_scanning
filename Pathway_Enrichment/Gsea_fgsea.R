@@ -2,33 +2,12 @@
 ## this script receives information about gene expressión and pathway definitions and retrieves
 ##   the consensus regulated pathways (gage and fgsea) according to the function of Brian Gudenas  https://bioinformaticsbreakdown.com/how-to-gsea/
 ##  Inputs:
-##    A)  A data frame (Now it should be in csv format)
-##        It should contain your rankins
-##        And a column "Gene.Symbol" to give the name of the genes to this rankin
-##        
-##    B)  The name of the column with your rankins = Column_with_your_rankins
+##    A)  A data frame (Note that it should be in csv format)
+##          It should contain your rankins
+##          And a column "Gene.Symbol" to give the name of the genes to this ranking
+##    B)  The name of the column with your rankings = Column_with_your_rankings
 ##    C)  Path to Code
 ##    D)  
-##
-# parser$add_argument("-v", "--verbose", action="store_true", default=TRUE,
-#                     help="Print extra output [default]")
-# parser$add_argument("-q", "--quietly", action="store_false", 
-#                     dest="verbose", help="Print little output")
-# parser$add_argument("-d", "--dataframe", type="character", 
-#                     help="path to your data frame")
-# parser$add_argument("-r", "--columnrankings", type="character", 
-#                     help="name of the column that contains your rankings")
-# parser$add_argument("-c", "--code", type="character", 
-#                     help="path to your code")
-# parser$add_argument("-l", "--label", type="character", 
-#                     help="label (small one) for your results")
-# parser$add_argument("-p", "--pathwaysfile", type="character", 
-#                     help="Pathway file (in .gmt) format ")
-# parser$add_argument("-o", "--outputfolder", type="character", 
-#                     help="output folder where you want to store your results")
-# 
-# 
-
 if (!require("BiocManager")) {
   install.packages("BiocManager", ask =FALSE)
   library("BiocManager")
@@ -62,7 +41,7 @@ parser$add_argument("-v", "--verbose", action="store_true", default=TRUE,
 parser$add_argument("-q", "--quietly", action="store_false", 
                     dest="verbose", help="Print little output")
 parser$add_argument("-d", "--dataframe", type="character", 
-                    help="path to your data frame")
+                    help="path to your data frame in csv format")
 parser$add_argument("-r", "--columnrankings", type="character", 
                     help="name of the column that contains your rankings")
 parser$add_argument("-c", "--code", type="character", 
@@ -90,7 +69,7 @@ code_path<-normalizePath(code_path)
 source(paste0(code_path,"/GSEAgudenas.R"))
 
 df_with_my_ranking_path <- args$dataframe
-#df_with_my_ranking_path <- "/home/rmejia/Downloads/toy/pone.0145322.s007_4.csv"
+# df_with_my_ranking_path <- "/home/rmejia/Downloads/toy/pone.0145322.s007_4.csv"
 #####df_with_my_ranking_path <- "/home/rmejia/Downloads/toy/pone.0145322.s007.tsv"
 #####df_with_my_ranking <- read.table(file=df_with_my_ranking_path, sep = "\t")
 
@@ -111,19 +90,19 @@ output_folder <- normalizePath(output_folder)
 ###############################
 ### The program starts
 ###############################
-S4table <- read.csv(file=df_with_my_ranking_path, skip=1) %>%
+S4table <- read.csv(file = df_with_my_ranking_path, skip=1) %>%
   filter(Gene.Symbol != "")
 
-gene_list = S4table[,Column_with_your_rankins]
+gene_list = S4table[ , Column_with_your_rankins ]
 names(gene_list) = S4table$Gene.Symbol
 gene_list = sort(gene_list, decreasing = TRUE)
 gene_list = gene_list[!duplicated(names(gene_list))]
 
 
-res = GSEAgudenas(gene_list, GO_filepath , pval = 0.05 , mysmalllabel4title )
+res = GSEAgudenas( gene_list, GO_filepath , pval = 0.05 , mysmalllabel4title )
 dim(res$Results)
 
-pdf( file=paste0(output_folder ,"/" , mysmalllabel4title ,".pdf"),
+pdf( file = paste0(output_folder ,"/" , mysmalllabel4title ,".pdf") ,
      width = 10, height = 7)
 print(res$Plot)
 dev.off()
@@ -131,7 +110,8 @@ dev.off()
 # Matrix_to_save <- res$Results[ , c("pathway","pval","padj","ES","Enrichment")]
 Matrix_to_save <- res$Results
 save_matrix_path <- paste0(output_folder ,"/" , mysmalllabel4title ,"_matrix.tsv" )
-write.table( save_matrix_path , sep="\t", row.names = FALSE )
+write.table( as.matrix(Matrix_to_save) , file=save_matrix_path , sep="\t", row.names = FALSE )
+
 
 save_rds_path <- paste0(output_folder ,"/" , mysmalllabel4title ,".RDS" )
 saveRDS( res, save_rds_path)
