@@ -8,6 +8,12 @@
 ##    B)  The name of the column with your rankings = Column_with_your_rankings
 ##    C)  Path to Code
 ##    D)  
+
+## your column of interest should be named like "Gene.Symbol"
+## the column of your rankings should be named "DESeq2.Log2.Fold.Change"
+
+# lets look at https://bioinformatics-core-shared-training.github.io/RNAseq_May_2020_remote/html/06_Gene_set_testing.html
+
 if (!require("BiocManager")) {
   install.packages("BiocManager", ask =FALSE)
   library("BiocManager")
@@ -27,6 +33,10 @@ if (!require("gage")) {
 if (!require("data.table")) {
   BiocManager::install("data.table", ask =FALSE)
   library("data.table")
+}
+if (!require("ggplot2")) {
+  BiocManager::install("ggplot2", ask =FALSE)
+  library("ggplot2")
 }
 
 ############################## 
@@ -70,8 +80,12 @@ source(paste0(code_path,"/GSEAgudenas.R"))
 
 df_with_my_ranking_path <- args$dataframe
 # df_with_my_ranking_path <- "/home/rmejia/Downloads/toy/pone.0145322.s007_4.csv"
-#####df_with_my_ranking_path <- "/home/rmejia/Downloads/toy/pone.0145322.s007.tsv"
+##### df_with_my_ranking_path <- "/home/rmejia/Downloads/toy/pone.0145322.s007.tsv"
+##### df_with_my_ranking_path <- "/media/rmejia/mountme88/Projects/Phosoholipidosis/RNAseq/DESeq2_RNAseq_lipidosis_vs_Normal_First_sheet_gseaGudenas_format_untilColumn8_Nonovel-X-pseudogene-d-uncharacterized_nopoints.tsv"
+
+
 #####df_with_my_ranking <- read.table(file=df_with_my_ranking_path, sep = "\t")
+df_with_my_ranking <- read.table(file=df_with_my_ranking_path, header = TRUE,sep = "\t")
 
 GO_filepath <- args$pathwaysfile
 # GO_filepath <- "/media/rmejia/mountme88/Common_and_Virgin_Data/Common_Data_Across_Projects/Pathways/MsigDB/C5_GeneOntology_Biological_Process/c5.go.bp.v7.4.symbols.gmt"
@@ -83,14 +97,16 @@ mysmalllabel4title<- args$label
 # mysmalllabel4title <- "WT--vs--DT"
 
 output_folder <- args$outputfolder
-# output_folder <- "/home/rmejia/Downloads/toy/Results/"
+# output_folder <- "/home/rmejia/Downloads/toy/Results/DIL"
 dir.create( output_folder, recursive = TRUE )
 output_folder <- normalizePath(output_folder)
 
 ###############################
 ### The program starts
 ###############################
-S4table <- read.csv(file = df_with_my_ranking_path, skip=1) %>%
+#S4table <- read.csv(file = df_with_my_ranking_path, skip=1) %>%
+#  filter(Gene.Symbol != "")
+ S4table <- read.table(file = df_with_my_ranking_path, sep='\t', header=TRUE) %>%
   filter(Gene.Symbol != "")
 
 gene_list = S4table[ , Column_with_your_rankins ]
@@ -100,8 +116,9 @@ gene_list = gene_list[!duplicated(names(gene_list))]
 
 
 res = GSEAgudenas( gene_list, GO_filepath , pval = 0.05 , mysmalllabel4title )
-dim(res$Results)
 
+dim(res$Results)
+?fgsea
 pdf( file = paste0(output_folder ,"/" , mysmalllabel4title ,".pdf") ,
      width = 10, height = 7)
 print(res$Plot)
