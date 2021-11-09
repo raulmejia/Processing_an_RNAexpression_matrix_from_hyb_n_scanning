@@ -21,9 +21,10 @@ rankData <- gene_list
 
 
 load("/media/rmejia/mountme88/Common_and_Virgin_Data/Common_Data_Across_Projects/Pathways/GO/human_c5_v5p2.rdata")
+load("/media/rmejia/mountme88/Common_and_Virgin_Data/Common_Data_Across_Projects/Pathways/GO/mouse_c5_v5p2.rdata")
 ls()
 
-
+"Mm.c5"
 pathwaysH <- Hs.c5
 
 fgseaRes <- fgsea(pathwaysH, 
@@ -31,6 +32,14 @@ fgseaRes <- fgsea(pathwaysH,
                  minSize=15, 
                  maxSize = 500, 
                  nperm=1000)
+
+fgseaRes <- fgsea(Mm.c5, 
+                  rankData, 
+                  minSize=15, 
+                  maxSize = 500, 
+                  nperm=1000)
+
+
 
 fgseaRes %>% 
   arrange(desc(abs(NES))) %>% 
