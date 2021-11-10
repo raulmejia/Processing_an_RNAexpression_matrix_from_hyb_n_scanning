@@ -68,13 +68,13 @@ parser$add_argument("-o", "--outputfolder", type="character",
 args <- parser$parse_args( )
 # print some progress messages to stderr if "quietly" wasn't requested
 
-################
+##############################
 ### Reading the input data
-################
+##############################
 
 code_path <- args$code
 # code_path <- "/media/rmejia/mountme88/code/Processing_an_RNAexpression_matrix_from_hyb_n_scanning/Pathway_Enrichment/"
-code_path<-normalizePath(code_path)
+code_path <- normalizePath(code_path)
 
 source(paste0(code_path,"/GSEAgudenas.R"))
 
