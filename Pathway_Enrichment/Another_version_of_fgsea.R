@@ -10,16 +10,16 @@ if (!require("clusterProfiler")) {
   BiocManager::install("clusterProfiler", ask =FALSE)
   library("clusterProfiler")
 }
+#BiocManager::install(version = '3.14') BiocManager::install("clusterProfiler")
 
-BiocManager::install("clusterProfiler")
+
 if (!require("org.Hs.eg.db")) {
   BiocManager::install("org.Hs.eg.db", ask =FALSE)
   library("org.Hs.eg.db")
 }
-library(clusterProfiler)
-#library("org.Hs.eg.db")
 
-library(clusterProfiler)
+
+
 ##############################
 ### Info given by the user
 ##############################

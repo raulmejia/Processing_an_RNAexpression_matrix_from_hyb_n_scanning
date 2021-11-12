@@ -101,11 +101,12 @@ output_folder <- args$outputfolder
 dir.create( output_folder, recursive = TRUE )
 output_folder <- normalizePath(output_folder)
 
+mypval <- 0.05
+
 ###############################
 ### The program starts
 ###############################
-#S4table <- read.csv(file = df_with_my_ranking_path, skip=1) %>%
-#  filter(Gene.Symbol != "")
+# S4table <- read.csv(file = df_with_my_ranking_path, skip=1) %>%  filter(Gene.Symbol != "")
  S4table <- read.table(file = df_with_my_ranking_path, sep='\t', header=TRUE) %>%
   filter(Gene.Symbol != "")
 
@@ -114,11 +115,50 @@ names(gene_list) = S4table$Gene.Symbol
 gene_list = sort(gene_list, decreasing = TRUE)
 gene_list = gene_list[!duplicated(names(gene_list))]
 
+#  myGO = fgsea::gmtPathways(GO_filepath)
+# 
+fgRes <- fgsea::fgsea(pathways = myGO, 
+                      stats = gene_list,
+                      minSize=15,
+                      maxSize=600,
+                      nperm=10000)
+
+fgRes <- fgsea::fgsea(pathways = myGO, 
+                      stats = gene_list,
+                      minSize=15, # Do it lower than 10 ? Check the ABCA4 Path
+                      maxSize=600) %>% as.data.frame() %>%  dplyr::filter(padj < !!mypval)
+
+fgRes_Multilevel <- fgseaMultilevel(
+  pathways = myGO, 
+  stats = gene_list,
+  minSize=15, # Do it lower than 10 ? Check the ABCA4 Path
+  maxSize=600
+  ) %>%  dplyr::filter(padj < !!mypval)
+
+
+
+
+#fgRes <- fgsea::fgsea(pathways = myGO, 
+                      stats = gene_list,
+                      minSize=15, # Do it lower than 10 ? Check the ABCA4 Path
+                      maxSize=600) %>% as.data.frame() %>%  dplyr::filter(padj < !!mypval)
+
+
+
+fgRes <- fgsea::fgsea(pathways = myGO, 
+                      stats = gene_list[c(1:100,18227:18327)],
+                      minSize=15,
+                      maxSize=600)
+
 
 res = GSEAgudenas( gene_list, GO_filepath , pval = 0.05 , mysmalllabel4title )
-
+# res = GSEAgudenas( gene_list[c(1:100,18227:18327)], GO_filepath , pval = 0.05 , mysmalllabel4title )
 dim(res$Results)
+
+
+
 ?fgsea
+
 pdf( file = paste0(output_folder ,"/" , mysmalllabel4title ,".pdf") ,
      width = 10, height = 7)
 print(res$Plot)
