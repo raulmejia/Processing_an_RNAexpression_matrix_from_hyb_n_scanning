@@ -91,9 +91,9 @@ duplicatedHGNCsids <- table_HGNCids$name[ duplicated( table_HGNCids$name ) ]
 duplicatedHGNCs_positions <- which(table_HGNCids$name %in% duplicatedHGNCsids)
 table_of_duplicated_HGNCs <- table_HGNCids[duplicatedHGNCs_positions, ]
 
-######
+#######
 ## Bulding the matrix with the annotations (HGNC)
-######
+#######
 input_ids_and_converted_ids <- table_HGNCids[ , c(2,4)]
 
 # creating the matrix to fill out
