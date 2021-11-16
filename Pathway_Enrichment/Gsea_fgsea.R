@@ -77,12 +77,14 @@ code_path <- args$code
 code_path <- normalizePath(code_path)
 
 source(paste0(code_path,"/GSEAgudenas.R"))
+source(paste0(code_path,"/Fgsea_npermSimple_intersection_gage.R"))
 
 df_with_my_ranking_path <- args$dataframe
 # df_with_my_ranking_path <- "/home/rmejia/Downloads/toy/pone.0145322.s007_4.csv"
 ##### df_with_my_ranking_path <- "/home/rmejia/Downloads/toy/pone.0145322.s007.tsv"
 ##### df_with_my_ranking_path <- "/media/rmejia/mountme88/Projects/Phosoholipidosis/RNAseq/DESeq2_RNAseq_lipidosis_vs_Normal_First_sheet_gseaGudenas_format_untilColumn8_Nonovel-X-pseudogene-d-uncharacterized_nopoints.tsv"
-
+##### df_with_my_ranking_path <- "/media/rmejia/mountme88/Projects/Phosoholipidosis/RNAseq/DESeq2_Output_ALL_Deleted_Mar-Sep.tsv"
+##### df_with_my_ranking_path <- "/media/rmejia/mountme88/Projects/Phosoholipidosis/RNAseq/DESeq2_Output_ALL_Mar_ToMACH-Sep_ToSEPT-Dec_ToDEC.tsv"
 
 #####df_with_my_ranking <- read.table(file=df_with_my_ranking_path, sep = "\t")
 df_with_my_ranking <- read.table(file=df_with_my_ranking_path, header = TRUE,sep = "\t")
@@ -97,12 +99,11 @@ mysmalllabel4title<- args$label
 # mysmalllabel4title <- "WT--vs--DT"
 
 output_folder <- args$outputfolder
-# output_folder <- "/home/rmejia/Downloads/toy/Results/DIL"
+# output_folder <- "/home/rmejia/Downloads/toy/Results/DIL/ALL_DESeq_Mar-Sep-Dec-Rescued"
 dir.create( output_folder, recursive = TRUE )
 output_folder <- normalizePath(output_folder)
 
 mypval <- 0.05
-
 ###############################
 ### The program starts
 ###############################
@@ -117,40 +118,43 @@ gene_list = gene_list[!duplicated(names(gene_list))]
 
 #  myGO = fgsea::gmtPathways(GO_filepath)
 # 
+# fgRes <- fgsea::fgsea(pathways = myGO, 
+#                       stats = gene_list,
+#                       minSize=15,
+#                       maxSize=600,
+#                       nperm=10000)
+
+
 fgRes <- fgsea::fgsea(pathways = myGO, 
-                      stats = gene_list,
-                      minSize=15,
-                      maxSize=600,
-                      nperm=10000)
-
-fgRes <- fgsea::fgsea(pathways = myGO, 
-                      stats = gene_list,
-                      minSize=15, # Do it lower than 10 ? Check the ABCA4 Path
-                      maxSize=600) %>% as.data.frame() %>%  dplyr::filter(padj < !!mypval)
-
-fgRes_Multilevel <- fgseaMultilevel(
-  pathways = myGO, 
-  stats = gene_list,
-  minSize=15, # Do it lower than 10 ? Check the ABCA4 Path
-  maxSize=600
-  ) %>%  dplyr::filter(padj < !!mypval)
-
-
-
-
-#fgRes <- fgsea::fgsea(pathways = myGO, 
                       stats = gene_list,
                       minSize=15, # Do it lower than 10 ? Check the ABCA4 Path
                       maxSize=600) %>% as.data.frame() %>%  dplyr::filter(padj < !!mypval)
 
-
-
 fgRes <- fgsea::fgsea(pathways = myGO, 
-                      stats = gene_list[c(1:100,18227:18327)],
-                      minSize=15,
-                      maxSize=600)
+                      stats = gene_list,
+                      minSize=15, # Do it lower than 10 ? Check the ABCA4 Path
+                      nPermSimple = 10000,
+                      maxSize=600) %>% as.data.frame() %>%  dplyr::filter(padj < !!mypval)
+fgRes_sorted_by_padj <- fgRes[order(fgRes$padj, decreasing = TRUE) ,]
 
+dim(fgRes_sorted_by_padj)
 
+#Rescue the MARCH and SEPT
+
+# fgRes_Multilevel <- fgseaMultilevel(
+#   pathways = myGO, 
+#   stats = gene_list,
+#   minSize=15, # Do it lower than 10 ? Check the ABCA4 Path
+#   maxSize=600
+#   ) %>%  dplyr::filter(padj < !!mypval)
+
+gaRes = gage::gage(gene_list, gsets=myGO, same.dir=TRUE, set.size =c(15,600))
+str(gaRes)
+attr(gaRes$greater,"dimnames")
+head(gaRes$less, n= 20)
+gaRes$stats
+
+res = Fgsea_npermSimple_intersection_gage( gene_list, GO_filepath , pval = 0.05 , mysmalllabel4title )  
 res = GSEAgudenas( gene_list, GO_filepath , pval = 0.05 , mysmalllabel4title )
 # res = GSEAgudenas( gene_list[c(1:100,18227:18327)], GO_filepath , pval = 0.05 , mysmalllabel4title )
 dim(res$Results)

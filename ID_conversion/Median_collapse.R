@@ -52,13 +52,7 @@ path2save <- args$outputfile
 #  path2save <- "/media/rmejia/mountme88/Projects/Phosoholipidosis/RNAseq/Expression_Matrix_from_Emmi/lipidosis_RNA_16_STAR_fC_edgeR_matrix_HNGC_added_median_collapsed.tsv"
 
 #############################
-## 2) Separating the elements
-#############################
-your_ids_to_collapse <- inputdf[,1]
-the_matrix<- inputdf[,-1]
-
-#############################
-## 3) Checking if it pertinent to proceed
+## 2) Checking if it pertinent to proceed 
 #############################
 if(sum(duplicated(inputdf[,1])) == 0 ){
   print( "your matrix doesn't have replicates so it is already collapsed, there is nothing to do in median collapse" )
@@ -66,18 +60,31 @@ if(sum(duplicated(inputdf[,1])) == 0 ){
   break()
 }
 
+#############################
+## 3) Separating the IDs and the numeric matrix
+#############################
+your_ids_to_collapse <- inputdf[,1]
+the_matrix<- inputdf[,-1]
 
+#############################
+## 4) Identifying the positions of the duplicated and non-duplicated IDs
+#############################
 duplicated_ids <- inputdf[,1][duplicated(inputdf[,1])]
-duplicated_positions <- which(inputdf[,1] %in% duplicated_ids)
+duplicated_positions <- which(inputdf[,1] %in% duplicated_ids) # Identifying the positions where the duplicates lay
 
-positions_non_duplicated <- setdiff( 1:dim(inputdf)[1] , duplicated_positions) # Data frame of non-duplicated
-df_of_non_duplicated <- inputdf[ positions_non_duplicated , ]
+positions_non_duplicated <- setdiff( 1:dim(inputdf)[1] , duplicated_positions) # Identifying the complementary positions ( where the duplicates haven't lain)
+df_of_non_duplicated <- inputdf[ positions_non_duplicated , ] # Data frame with NO duplicates
 
-df_of_duplicated <- inputdf[ duplicated_positions , ]
+df_of_duplicated <- inputdf[ duplicated_positions , ] # Data frame of the duplicates
+# sort(table(df_of_duplicated[,1]  )) # Do you want to see a table with your duplicates? 
+
+#############################
+## 4) Preparing the data and the function to obtain the median per ID across the samples
+#############################
 df_of_duplicated[,1] <- as.factor(df_of_duplicated[,1]) # Factor to split the data frames
-df_of_duplicated_HNGC_splitted <- split(df_of_duplicated,df_of_duplicated[,1]) 
+df_of_duplicated_HNGC_splitted <- split(df_of_duplicated,df_of_duplicated[,1])  # Getting a list of "mutually exclusive dataframes". Each data frame contains all the repetitions of the "non-unique" ID 
 
-median_col_by_data_frame <-function(somedf ){
+median_col_by_data_frame <-function(somedf ){ # function to get the median by cols from a dataframe
   df_for_median <- somedf[-1]
   median_vector<-apply(df_for_median,2,median)
   #median_vector_plus_id <- c(unique(somedf[1,]) , median_vector)
@@ -85,23 +92,19 @@ median_col_by_data_frame <-function(somedf ){
 }
 # median_col_by_data_frame(df_of_duplicated_HNGC_splitted[[1]])
 
-collapsed_by_median_lists <- lapply(df_of_duplicated_HNGC_splitted,median_col_by_data_frame)
-df_of_duplicated_now_collapsed_by_median <- do.call(rbind, collapsed_by_median_lists)
+collapsed_by_median_lists <- lapply( df_of_duplicated_HNGC_splitted , median_col_by_data_frame ) # Applying the function to the list of "mutually exclusive dataframes"
+df_of_duplicated_now_collapsed_by_median <- do.call(rbind, collapsed_by_median_lists) # Transforming the list of DFs to a single Matrix
 
+#############################
+## 5) Joining the Data Frame with unique IDs and the DataFrame of the duplicated IDs (Now collapsed by median)
+#############################
+rownames( df_of_non_duplicated ) <- df_of_non_duplicated[ , 1 ] # We can assign this rownames bc there is no duplicated
+df_of_non_duplicated_no_id_colum <- df_of_non_duplicated[ , -1] # Now that the IDs can be used as rownames we can deleted the first column
 
-# Binding both
-rownames( df_of_non_duplicated ) <- df_of_non_duplicated[,1] # We can assign this rownames bc there is no duplicated
-df_of_non_duplicated_no_id_colum <- df_of_non_duplicated[ , -1]
-
-
-df_median_collapsed <- rbind(df_of_non_duplicated_no_id_colum,  df_of_duplicated_now_collapsed_by_median)
-
-df_median_collapsed <- df_median_collapsed[ order(rownames(df_median_collapsed)) , ]
-
+df_median_collapsed <- rbind(df_of_non_duplicated_no_id_colum,  df_of_duplicated_now_collapsed_by_median) # binding the two DFs
+df_median_collapsed <- df_median_collapsed[ order(rownames( df_median_collapsed ) ) , ] # ordering the rownames
 
 ###########################
-#   Saving the results  ###
+# 6)  Saving the results  ###
 ###########################
 write.table( df_median_collapsed, file = path2save , row.names = TRUE, sep="\t" )
-
-
