@@ -1,9 +1,15 @@
-# This script performs a median colapse of your matrix
+# This script takes a expression matrix and performs a median collapsing of your repeated IDS 
+#
 # The structure of your matrix should be 
 #           HNGC(or other id) sample1 sample2 ...
 # rowname1  HNGCA             0.42    45
 # roename2  HNGCB             1       0
 # rowname3  HNGCB             45      0
+
+# Example of use:
+# Rscript Median_collapse.R \
+#  -i /Path/to/input_matrix.tsv \
+#  -o /Path/to/output_matrix.tsv
 
 ## Notes
 ############################## 
