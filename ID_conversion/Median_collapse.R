@@ -42,21 +42,30 @@ args <- parser$parse_args()
 #############################
 ## The program starts
 #############################
+#############################
+## 1) Reading the data
+#############################
 inputdf <-read.table( file=args$inputfile, stringsAsFactors = FALSE )
 # inputdf <-read.table(file="/media/rmejia/mountme88/Projects/Phosoholipidosis/RNAseq/Expression_Matrix_from_Emmi/lipidosis_RNA_16_STAR_fC_edgeR_matrix_HNGC_added.tsv", stringsAsFactors = FALSE)
 
 path2save <- args$outputfile
 #  path2save <- "/media/rmejia/mountme88/Projects/Phosoholipidosis/RNAseq/Expression_Matrix_from_Emmi/lipidosis_RNA_16_STAR_fC_edgeR_matrix_HNGC_added_median_collapsed.tsv"
 
+#############################
+## 2) Separating the elements
+#############################
 your_ids_to_collapse <- inputdf[,1]
 the_matrix<- inputdf[,-1]
 
-
+#############################
+## 3) Checking if it pertinent to proceed
+#############################
 if(sum(duplicated(inputdf[,1])) == 0 ){
   print( "your matrix doesn't have replicates so it is already collapsed, there is nothing to do in median collapse" )
   write.table(inputdf, path2save, sep = "\t", row.names = TRUE, col.names = TRUE)
   break()
 }
+
 
 duplicated_ids <- inputdf[,1][duplicated(inputdf[,1])]
 duplicated_positions <- which(inputdf[,1] %in% duplicated_ids)
