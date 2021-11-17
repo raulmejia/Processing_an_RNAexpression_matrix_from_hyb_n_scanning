@@ -84,6 +84,7 @@ if (!require("Rtsne")) {
 #  BiocManager::install("M3C", ask =FALSE)
 #  library("M3C")
 #}
+
 #if (!require("tidyverse")) {
 #  BiocManager::install("tidyverse", ask =FALSE)
 #  library("tidyverse")
