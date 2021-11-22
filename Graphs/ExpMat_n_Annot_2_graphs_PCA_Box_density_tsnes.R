@@ -163,7 +163,6 @@ if(all(colnames( mymatrix) ==  annotdf$Unique_ID) != TRUE ){
 
 ## Plotting pcas
 annot_4_plotting_pca <- annotdf 
-head(annot_4_plotting_pca) ######## Bandera #############
 annot_4_plotting_pca[ , your_main_groups ] <- as.factor( annot_4_plotting_pca[ , your_main_groups ] )
 
 source( paste0( code_path ,"/libraries/" , "matrix_N_annotdf_2_melteddf.R") )
