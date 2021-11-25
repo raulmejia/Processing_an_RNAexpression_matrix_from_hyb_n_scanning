@@ -5,16 +5,24 @@
 # Note: 
 # Search what should be the apropriate perplexity number for the tsnes
 ####################
-#  exp_matrix <-  mymatrix
-#  annotdf <- annot_4_plotting_pca
-#  melteddf <- melted_expmat ; melteddf <- melted_expmat_log2
-#  label4title <- label
-#  result_dir <- paste0(  outputfolder,"/PCA_2D" )
-#  perplexity <- 5 # (default)
+
+# exp_matrix <-   mymatrix
+# annotdf <- annot_4_plotting_pca
+# melteddf <-meltedrawdata
+# label4title <- paste0( label )
+# result_dir <- paste0( outputfolder,"/PCA_2D" )
+# myperplexity <- 3 # (default was 5)
+# group_4_tsnes <- your_main_groups
+# PCA_point_size <-3
+
+# Please note that the columns in the annotation file should no contain numbers otherwise the tsnes complain
 
 #############
 ##A required function
 #############
+#  someannotdf <- annotdf 
+#  colname_from_your_annordf <- group_4_tsnes 
+# k =1
 colors_4_plotDensities <- function( someannotdf , colname_from_your_annordf ){
   group_uniquenames_length <- length( unique( someannotdf[,colname_from_your_annordf] ) ) # length of the uniquenames
   rainbow_colors <- rainbow( group_uniquenames_length ) # color to substitute those names
@@ -29,7 +37,7 @@ colors_4_plotDensities <- function( someannotdf , colname_from_your_annordf ){
 ####
 # The program starts
 ####
-PCA_box_density_tsnes_plots <- function( result_dir, exp_matrix, annotdf, melteddf, label4title  ){
+PCA_box_density_heatmap_tsnes_plots <- function( result_dir, exp_matrix, annotdf, melteddf, label4title, myperplexity, group_4_tsnes, PCA_point_size){
   exp_matrix_T <- t(exp_matrix)
   dir.create( result_dir, recursive = TRUE )
   #######
@@ -43,8 +51,8 @@ PCA_box_density_tsnes_plots <- function( result_dir, exp_matrix, annotdf, melted
   # PCAs
   ###########
   for( myfill in meaningful_variables ){
-    print(autoplot( prcomp( exp_matrix_T ), data = annotdf, colour=myfill)+
-                      ggtitle(paste0(label4title )) )
+    print(autoplot( prcomp( exp_matrix_T ), data = annotdf, colour=myfill, size=PCA_point_size)+
+            ggtitle(paste0(label4title )) )
   }
   
   ##############
@@ -52,8 +60,8 @@ PCA_box_density_tsnes_plots <- function( result_dir, exp_matrix, annotdf, melted
   ##############
   for( myfill in meaningful_variables ){
     boxp <- ggplot(melteddf, aes_string(y="value", fill = myfill, x = "Unique_ID")) + 
-    geom_boxplot( )+ ggtitle(paste( label4title ))  # Density plots
-  print(boxp )
+      geom_boxplot( )+ ggtitle(paste( label4title ))  # Density plots
+    print(boxp )
   }
   
   ##################
@@ -79,16 +87,22 @@ PCA_box_density_tsnes_plots <- function( result_dir, exp_matrix, annotdf, melted
     plotDensities(exp_matrix, col = colors_from_rainbow )
     #print( plotDensities(exp_matrix, col = colors_from_rainbow ) )  
   }
-  
+  #############
+  ### heatmap
+  #############
+  colors_for_heatmap <- colors_4_plotDensities(annotdf ,  group_4_tsnes )
+  heatmap( as.matrix(exp_matrix), ColSideColors=colors_for_heatmap , margins=c(30,2), Colv =FALSE)
+  heatmap( as.matrix(exp_matrix), ColSideColors=colors_for_heatmap , margins=c(1,2), Colv =FALSE)
+  ?heatmap
   ##############
   # Tsne-s
   ##############
   # Tsnes Calculation
-  tsne_model_1 = Rtsne(  t(exp_matrix)  , check_duplicates=FALSE, pca=TRUE, perplexity=4, theta=0.5, dims=2)
+  tsne_model_1 = Rtsne(  t(exp_matrix)  , check_duplicates=FALSE, pca=TRUE, perplexity=myperplexity, theta=0.5, dims=2)
   d_tsne_1 = as.data.frame( tsne_model_1$Y )
   
   # Tsne black and white
-  d_tsne_1_simplecols <- cbind(d_tsne_1, annotdf$group)
+  d_tsne_1_simplecols <- cbind(d_tsne_1, annotdf[,group_4_tsnes] ) 
   mytsneplot_Nocolors <- ggplot(d_tsne_1_simplecols, aes(x=V1, y=V2 )) +
     geom_point(size=2.5) +
     guides(colour=guide_legend(override.aes=list(size=6))) +

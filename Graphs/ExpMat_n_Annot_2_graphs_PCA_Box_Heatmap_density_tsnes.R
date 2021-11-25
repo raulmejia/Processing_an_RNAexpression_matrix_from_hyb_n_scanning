@@ -2,7 +2,6 @@
 # one group of plots is about the distribution of your data ( box and densityplots)
 # the other group of plots are for clustering
 #   tsnes, pcas, ...
-
 # The structure of your matrix should be 
 #          sample1 sample2 ...
 # rowname1  0.42    45
@@ -10,23 +9,9 @@
 # rowname3  45      0
 # NEG_Prob1 0       12
 # POS_E     2       1
+## Notes
 
-# example of the annotation: (Note that columns with only numbers give problems)
-# "Unique_ID"     "group" "Treatment"     "Cell_line"     "Generation"
-# "LipChl1"       "LipChl"        "CQ"    "DIP"   "_1"
-# "LipChl2"       "LipChl"        "CQ"    "DIP"   "_2"
-
-# one column of your annotation file should have the name "group" (Check if this is still valid) and other "Unique_ID"
-
-# Example of use:
-# Rscript /Path/to/this/nice/script/ExpMat_n_Annot_2_graphs_PCA_Box_density_tsnes.R \
-# -m /Path/to/the/expression/matrix.txt \
-# -a /Path/2/your/annotation/file \
-# -c /Path/to/find/the/libraries \
-# -l some_label_for_the_results \
-# -g group \
-# -o /my/output/folder/2/create
-
+# Please note that the columns in the annotation file should no contain numbers otherwise the tsnes complain
 ############################## 
 ## Required libraries
 ##############################
@@ -112,6 +97,10 @@ parser$add_argument("-l", "--label", type="character",
                     help="label to your results")
 parser$add_argument("-g", "--maingroups", type="character", 
                     help="the name of your column to correct / make intrabatch normalization")
+parser$add_argument("-p", "--perplexity", type="character", 
+                    help="Perplexity number for Tsnes")
+parser$add_argument("-s", "--pcapointsize", type="character", 
+                    help="PCA point size")
 parser$add_argument("-o", "--outputfolder", type="character", 
                     help="output folder where you want to store your results")
 
@@ -124,33 +113,34 @@ args <- parser$parse_args( )
 ## Reading or preparing the inputs
 #############################
 mymatrix <-read.table( file=args$matrix, stringsAsFactors = FALSE , check.names = FALSE)
-#  mymatrix <-read.table(file="/media/rmejia/mountme88/Projects/Maja-covid/Data/Controls/Ncounter_Platform/Kidney/toys_merged_quantile_norm_by_batch.txt", stringsAsFactors = FALSE, check.names = FALSE)
-#  mymatrix <-read.table(file="/media/rmejia/mountme88/Projects/Maja-covid/Data/Merged/Exp_Mat_GSE115989_MNHK.tsv", stringsAsFactors = FALSE, check.names = FALSE)
-#  mymatrix <-read.table(file="/media/rmejia/mountme88/Projects/Maja-covid/Data/Merged/Exp_Mat_MK_GSE113342LE_GSE115989RJ_MajaL_GSE89880.txt", stringsAsFactors = FALSE, check.names = FALSE)
-#  mymatrix <-read.table(file="/media/rmejia/mountme88/Projects/Phosoholipidosis/RNAseq/Expression_Matrix_from_Emmi/lipidosis_RNA_16_STAR_fC_edgeR_matrix.txt", stringsAsFactors = FALSE, check.names = FALSE) 
+#  mymatrix <-read.table(file="/data/...Exp_Mat_GSE113342_Tubulus.tsv", stringsAsFactors = FALSE, check.names = FALSE)
 
-annotdf <-read.table( file=args$annotation, stringsAsFactors = FALSE , header=TRUE )
-# annotdf <-read.table(file="/media/rmejia/mountme88/Projects/Maja-covid/Data/Controls/Ncounter_Platform/Kidney/toys_merged_annotations.tsv", stringsAsFactors = FALSE )
-# annotdf <-read.table(file="/media/rmejia/mountme88/Projects/Maja-covid/Data/Merged/GSE115989_MNHK_AnnotFile.tsv", stringsAsFactors = FALSE )
-# annotdf <-read.table(file="/media/rmejia/mountme88/Projects/Maja-covid/Data/Merged/Annot_MK_GSE113342_GSE115989_ML_GSE89880.tsv", stringsAsFactors = FALSE , header=TRUE )
-# annotdf <-read.table(file="/media/rmejia/mountme88/Projects/Phosoholipidosis/RNAseq/Expression_Matrix_from_Emmi/annotation_lipidosis_RNA_16_STAR_fC_edgeR_matrix_2021_04_09_Rformat.tsv", stringsAsFactors = FALSE , header=TRUE)
+annotdf <-read.table( file=args$annotation, stringsAsFactors = FALSE, header = TRUE )
+# annotdf <-read.table(file="/data/.../Annotation_GSE113342_Only_TubuloInterstitium.tsv", stringsAsFactors = FALSE, , header = TRUE)
 
 code_path <- args$code
-# code_path <- "/media/rmejia/mountme88/code/Processing_an_RNAexpression_matrix_from_hyb_n_scanning/"
+# code_path <- "/data/.../Ncounter_RCC_processing/"
 
-label <- args$label # label <- "your_title" # label <- "lipidosis_RNA_16_STAR_fC_edgeR_matrix_looking_batches_by_generation"
-your_main_groups <- args$maingroups # your_main_groups <- "group"
+label <- args$label # label <- "As_downloaded_tubulointerstitium"
+your_main_groups <- args$maingroups # your_main_groups <- "Tissue"
+
+myperplexitynumber <- args$perplexity
+mode(myperplexitynumber) <- "numeric"
+# myperplexitynumber <- 3
+
+PCA_point_size <- args$pcapointsize
+mode( PCA_point_size ) <- "numeric"
+#PCA_point_size <- 3
 
 outputfolder <- args$outputfolder
-#  outputfolder <- "/media/rmejia/mountme88/Projects/Maja-covid/Results/toy_merged_quantiles_normalized_per_batch/"
-#  outputfolder <- "/media/rmejia/mountme88/Projects/Maja-covid/Results/GSE115989_MNHK/"
-#  outputfolder <- "/media/rmejia/mountme88/Projects/Maja-covid/Results/Annot_MK_GSE113342_GSE115989_ML_GSE89880"
-#  outputfolder <- "/media/rmejia/mountme88/Projects/Phosoholipidosis/RNAseq/Expression_Matrix_from_Emmi/lipidosis_RNA_16_STAR_fC_edgeR_matrix_idk_if_they_are_shuffled/Exploring"
+#  outputfolder <- "/data/.../As_Downloaded/"
 
 dir.create(outputfolder, recursive = TRUE)
 outputfolder <- normalizePath(outputfolder)
 
 code_path <- normalizePath(code_path)
+
+
 
 ##############################
 ## The program starts
@@ -164,7 +154,7 @@ if(all(colnames( mymatrix) ==  annotdf$Unique_ID) != TRUE ){
 }
 
 ## Plotting pcas
-annot_4_plotting_pca <- annotdf 
+annot_4_plotting_pca <- annotdf
 annot_4_plotting_pca[ , your_main_groups ] <- as.factor( annot_4_plotting_pca[ , your_main_groups ] )
 
 source( paste0( code_path ,"/libraries/" , "matrix_N_annotdf_2_melteddf.R") )
@@ -173,6 +163,6 @@ meltedrawdata <- matrix_N_annotdf_2_melteddf( mymatrix , annotdf )
 ############
 ## graphs
 ############
-source(paste0( code_path,"/libraries/","PCA_box_density_tsnes_plots.R") )
-PCA_box_density_tsnes_plots( paste0(  outputfolder,"/PCA_2D" )  ,
-                                                  mymatrix ,  annot_4_plotting_pca , meltedrawdata , paste0( label ) )
+source(paste0( code_path,"/libraries/","PCA-choosing-poing-size_box_density_heatmap_tsnes_plots.R") )
+PCA_box_density_heatmap_tsnes_plots( paste0(  outputfolder,"/PCA_2D" )  ,
+                             mymatrix ,  annot_4_plotting_pca , meltedrawdata , paste0( label ) , myperplexitynumber , your_main_groups, PCA_point_size )

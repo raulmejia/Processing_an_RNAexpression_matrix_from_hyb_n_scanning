@@ -1,13 +1,36 @@
-###################################
-#### Author: Raúl Mejía
-#### The aim of this program is to explore your expression matrix, taking a glimpse of the normalization & batch effects  
-###################################
-# one column of your annotation file should have the name "group" and other "Unique_ID"
-# the column names of your expression matrix should match with the rows entries of the "group" column in your annotation df (in that exact order)
-# This script calls the function PCA_box_density_plots_group_Treatment_Cell_line that plot the group Treatment and Cell_line columns from your annotation file (those columns should be in your annotation file)
-###################################
-#### 0) loading and/or installing required libraries
-###################################
+# This script do some plots over your matrix
+# one group of plots is about the distribution of your data ( box and densityplots)
+# the other group of plots are for clustering
+#   tsnes, pcas, ...
+
+# The structure of your matrix should be 
+#          sample1 sample2 ...
+# rowname1  0.42    45
+# rowname2  1       0
+# rowname3  45      0
+# NEG_Prob1 0       12
+# POS_E     2       1
+
+# example of the annotation: (Note that columns with only numbers give problems)
+#
+# "Unique_ID"     "group" "Treatment"     "Cell_line"     "Generation"
+# "LipChl1"       "LipChl"        "CQ"    "DIP"   "_1"
+# "LipChl2"       "LipChl"        "CQ"    "DIP"   "_2"
+
+# one column of your annotation file should have the name "group" (Check if this is still valid) and other "Unique_ID"
+
+# Example of use:
+# Rscript /Path/to/this/nice/script/ExpMat_n_Annot_2_graphs_PCA_Box_density_tsnes.R \
+# -m /Path/to/the/expression/matrix.txt \
+# -a /Path/2/your/annotation/file \
+# -c /Path/to/find/the/libraries \
+# -l some_label_for_the_results \
+# -g group \
+# -o /my/output/folder/2/create
+
+############################## 
+## Required libraries
+##############################
 if (!require("BiocManager")) {
   install.packages("BiocManager", ask =FALSE)
   library("BiocManager")
@@ -27,10 +50,6 @@ if (!require("argparse")) {
 if (!require("ggfortify")) {
   install.packages("ggfortify", ask =FALSE)
   library("ggfortify")
-}
-if (!require("sva")) {
-  BiocManager::install("sva", ask =FALSE)
-  library("sva")
 }
 if (!require("limma")) {
   BiocManager::install("limma", ask =FALSE)
@@ -60,10 +79,6 @@ if (!require("ggridges")) {
   install.packages("ggridges", ask =FALSE)
   library("ggridges")
 }
-if (!require("cowplot")) {
-  install.packages("cowplot", ask =FALSE)
-  library("cowplot")
-}
 if (!require("preprocessCore")) {
   BiocManager::install("preprocessCore", ask =FALSE)
   library("preprocessCore")
@@ -72,102 +87,100 @@ if (!require("affy")) {
   BiocManager::install("affy", ask =FALSE)
   library("affy")
 }
-if (!require("oligo")) {
-  BiocManager::install("oligo", ask =FALSE)
-  library("oligo")
-}
 if (!require("Rtsne")) {
   BiocManager::install("Rtsne", ask =FALSE)
   library("Rtsne")
 }
-#if (!require("M3C")) {
-#  BiocManager::install("M3C", ask =FALSE)
-#  library("M3C")
-#}
 
-#if (!require("tidyverse")) {
-#  BiocManager::install("tidyverse", ask =FALSE)
-#  library("tidyverse")
-#}
+############################## 
+## Data given by the user
+##############################
+# create parser object
+parser <- ArgumentParser()
+# specify our desired options 
+# by default ArgumentParser will add an help option 
+parser$add_argument("-v", "--verbose", action="store_true", default=TRUE,
+                    help="Print extra output [default]")
+parser$add_argument("-q", "--quietly", action="store_false", 
+                    dest="verbose", help="Print little output")
+parser$add_argument("-m", "--matrix", type="character", 
+                    help="path to your expression matrix")
+parser$add_argument("-a", "--annotation", type="character", 
+                    help="path to your annotation file")
+parser$add_argument("-c", "--code", type="character", 
+                    help="path to your code")
+parser$add_argument("-l", "--label", type="character", 
+                    help="label to your results")
+parser$add_argument("-g", "--maingroups", type="character", 
+                    help="the name of your column to correct / make intrabatch normalization")
+parser$add_argument("-o", "--outputfolder", type="character", 
+                    help="output folder where you want to store your results")
 
-###################################
-#### Data given by the user
-###################################
-myargs <- commandArgs(trailingOnly = TRUE)
-path_to_your_matrix <- myargs[1]
-# path_to_your_matrix <- "/media/rmejia/mountme88/Projects/Phosoholipidosis/RNAseq/Expression_Matrix_from_Emmi/lipidosis_RNA_16_STAR_fC_edgeR_matrix_2021_04_29_to_work_colsymb-n-gene-deleted.tsv"
-# path_to_your_matrix <- "/media/rmejia/mountme88/Projects/Phosoholipidosis/RNAseq/Expression_Matrix_from_Emmi/lipidosis_RNA_16_STAR_fC_edgeR_matrix_2021_04_29-switched-to_work_colsymb-n-gene-deleted_original_order.tsv"
+# get command line options, if help option encountered print help and exit,
+# otherwise if options not found on command line then set defaults, 
+args <- parser$parse_args( )
+# print some progress messages to stderr if "quietly" wasn't requested
 
-path_to_your_annotation_file <- myargs[2]
-# path_to_your_annotation_file <- "/media/rmejia/mountme88/Projects/Phosoholipidosis/RNAseq/Expression_Matrix_from_Emmi/annotation_lipidosis_RNA_16_STAR_fC_edgeR_matrix_2021_04_09_Rformat.tsv"
+#############################
+## Reading or preparing the inputs
+#############################
+mymatrix <-read.table( file=args$matrix, stringsAsFactors = FALSE , check.names = FALSE)
+#  mymatrix <-read.table(file="/media/rmejia/mountme88/Projects/Maja-covid/Data/Controls/Ncounter_Platform/Kidney/toys_merged_quantile_norm_by_batch.txt", stringsAsFactors = FALSE, check.names = FALSE)
+#  mymatrix <-read.table(file="/media/rmejia/mountme88/Projects/Maja-covid/Data/Merged/Exp_Mat_GSE115989_MNHK.tsv", stringsAsFactors = FALSE, check.names = FALSE)
+#  mymatrix <-read.table(file="/media/rmejia/mountme88/Projects/Maja-covid/Data/Merged/Exp_Mat_MK_GSE113342LE_GSE115989RJ_MajaL_GSE89880.txt", stringsAsFactors = FALSE, check.names = FALSE)
+#  mymatrix <-read.table(file="/media/rmejia/mountme88/Projects/Phosoholipidosis/RNAseq/Expression_Matrix_from_Emmi/lipidosis_RNA_16_STAR_fC_edgeR_matrix.txt", stringsAsFactors = FALSE, check.names = FALSE) 
+#                              /media/rmejia/mountme88/Projects/Phosoholipidosis/RNAseq/Expression_Matrix_from_Emmi/lipidosis_RNA_16_STAR_fC_edgeR_matrix.txt
 
-Code_path <- myargs[3] # Path where are the rest of your scripts
-# Code_path <- "/media/rmejia/mountme88/code/Processing_an_RNAexpression_matrix_from_hyb_n_scanning"  
+annotdf <-read.table( file=args$annotation, stringsAsFactors = FALSE , header=TRUE )
+# annotdf <-read.table(file="/media/rmejia/mountme88/Projects/Maja-covid/Data/Controls/Ncounter_Platform/Kidney/toys_merged_annotations.tsv", stringsAsFactors = FALSE )
+# annotdf <-read.table(file="/media/rmejia/mountme88/Projects/Maja-covid/Data/Merged/GSE115989_MNHK_AnnotFile.tsv", stringsAsFactors = FALSE )
+# annotdf <-read.table(file="/media/rmejia/mountme88/Projects/Maja-covid/Data/Merged/Annot_MK_GSE113342_GSE115989_ML_GSE89880.tsv", stringsAsFactors = FALSE , header=TRUE )
+# annotdf <-read.table(file="/media/rmejia/mountme88/Projects/Phosoholipidosis/RNAseq/Expression_Matrix_from_Emmi/annotation_lipidosis_RNA_16_STAR_fC_edgeR_matrix_2021_04_09_Rformat.tsv", stringsAsFactors = FALSE , header=TRUE)
+#                            /media/rmejia/mountme88/Projects/Phosoholipidosis/RNAseq/Expression_Matrix_from_Emmi/annotation_lipidosis_RNA_16_STAR_fC_edgeR_matrix_2021_04_09_Rformat.tsv
 
-path_Results_directory <- myargs[4]
-# path_Results_directory <-"/media/rmejia/mountme88/Projects/Phosoholipidosis/RNAseq/Expression_Matrix_from_Emmi/Results_from_the_exploratory_analysis"
+code_path <- args$code
+# code_path <- "/media/rmejia/mountme88/code/Processing_an_RNAexpression_matrix_from_hyb_n_scanning/"
 
-data_label <- myargs[5]
-# data_label<- "lipidosis_RNA_16_STAR_fC_edgeR_matrix_2021_04_29_to_work_colsymb-n-gene-deleted"
-# data_label<- "switched_org_orderlipidosis_RNA_16_STAR_fC_edgeR_matrix_2021_04_29_to_work_colsymb-n-gene-deleted"
+label <- args$label # label <- "your_title" # label <- "lipidosis_RNA_16_STAR_fC_edgeR_matrix_looking_batches_by_generation"
+your_main_groups <- args$maingroups # your_main_groups <- "group"
 
-colname_4_intra_batch_normalization <- myargs[6] # please don't use spaces or parenthesis/brackets in the names of your columns
-# colname_4_intra_batch_normalization <- "group" # the name of your column to correct
+outputfolder <- args$outputfolder
+#  outputfolder <- "/media/rmejia/mountme88/Projects/Maja-covid/Results/toy_merged_quantiles_normalized_per_batch/"
+#  outputfolder <- "/media/rmejia/mountme88/Projects/Maja-covid/Results/GSE115989_MNHK/"
+#  outputfolder <- "/media/rmejia/mountme88/Projects/Maja-covid/Results/Annot_MK_GSE113342_GSE115989_ML_GSE89880"
+#  outputfolder <- "/media/rmejia/mountme88/Projects/Phosoholipidosis/RNAseq/Expression_Matrix_from_Emmi/lipidosis_RNA_16_STAR_fC_edgeR_matrix_idk_if_they_are_shuffled/Exploring"
 
+dir.create(outputfolder, recursive = TRUE)
+outputfolder <- normalizePath(outputfolder)
 
-###################################
-#### Creating your result folders if they doesn't exist yet
-###################################
-dir.create(path_Results_directory , recursive = TRUE)
+code_path <- normalizePath(code_path)
 
-###################################
-#### Normalize your paths
-###################################
-Code_path <- normalizePath(Code_path)
-path_Results_directory  <- normalizePath( path_Results_directory  )
+##############################
+## The program starts
+#############################
+if(all(colnames( mymatrix) ==  annotdf$Unique_ID) == TRUE ){ 
+  print("your annotation and colnames match")
+}
+if(all(colnames( mymatrix) ==  annotdf$Unique_ID) != TRUE ){ 
+  print("ERROR: your annotation and colnames DON´T match")
+  break()
+}
 
-###################################
-#### Reading the annotation table and the table that cointains the expression data
-###################################
-Raw_expmat <- read.table( path_to_your_matrix  , sep = "\t", header = TRUE)
-annot <- read.table( path_to_your_annotation_file , sep = "\t", header = TRUE )
+## Plotting pcas
+annot_4_plotting_pca <- annotdf 
+annot_4_plotting_pca[ , your_main_groups ] <- as.factor( annot_4_plotting_pca[ , your_main_groups ] )
 
-#####################
-# Annotation object for plotting pcas
-####################
-annot_4_plotting_pca <- annot
-annot_4_plotting_pca[ , "group" ] <- as.factor( annot_4_plotting_pca[ , "group" ] )
-colnames(Raw_expmat) ==  annot_4_plotting_pca$Unique_ID
+expmat_log2 <- log2( mymatrix +1 )
 
-# loading the function to melt (reshape) the data to preparation for ggplot2 functions
-source( paste0( Code_path,"/libraries/","matrix_N_annotdf_2_melteddf.R") )
-meltedrawdata <- matrix_N_annotdf_2_melteddf( Raw_expmat , annot )
+source( paste0( code_path ,"/libraries/" , "matrix_N_annotdf_2_melteddf.R") )
+melted_expmat_log2 <- matrix_N_annotdf_2_melteddf(expmat_log2 , annot_4_plotting_pca )
+# melted_expmat <- matrix_N_annotdf_2_melteddf( mymatrix , annot_4_plotting_pca )
 
-########################################
-########
-########    0. Exploratory
-########
-########################################
-#########
-### Visualize your the Raw data
-########
-source(paste0( Code_path,"/libraries/","PCA_box_density_plots.R") )
-PCA_box_density_plots_group_Treatment_Cell_line(  paste0( path_Results_directory,"/Exploratory" )  ,
-                        Raw_expmat ,  annot_4_plotting_pca , meltedrawdata , paste0( data_label, "Data_as_given" ))
+############
+## graphs
+############
+source(paste0( code_path,"/libraries/","PCA_box_density_tsnes_plots.R") )
+PCA_box_density_tsnes_plots( paste0(  outputfolder,"/PCA_2D" )  ,
+                             expmat_log2 ,  annot_4_plotting_pca , melted_expmat_log2 , paste0( label ) )
 
-########################################
-########
-########    1. Preprocessing
-########
-########################################
-##################
-## log 2 transformation
-##################
-expmat_log2 <- log2( Raw_expmat +1)
-melted_expmat_log2 <- matrix_N_annotdf_2_melteddf(expmat_log2 , annot )
-
-# Visualize the data log2 transformed data
-PCA_box_density_plots_group_Treatment_Cell_line(  paste0( path_Results_directory,"/Preprocessing" )  ,
-                        expmat_log2 ,  annot_4_plotting_pca , melted_expmat_log2 , paste0( data_label, "_Log2" ))
-
-write.table(expmat_log2, file= paste0(path_to_your_matrix ,"_log2.tsv") , sep="\t", row.names = TRUE, col.names = TRUE )
+# write.table(expmat_log2, file= paste0(path_to_your_matrix ,"_log2.tsv") , sep="\t", row.names = TRUE, col.names = TRUE )
