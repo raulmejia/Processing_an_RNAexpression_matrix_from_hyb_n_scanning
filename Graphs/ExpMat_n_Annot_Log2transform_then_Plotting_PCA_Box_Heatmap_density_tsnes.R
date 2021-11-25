@@ -20,12 +20,14 @@
 # one column of your annotation file should have the name "group" (Check if this is still valid) and other "Unique_ID"
 
 # Example of use:
-# Rscript /Path/to/this/nice/script/ExpMat_n_Annot_2_graphs_PCA_Box_density_tsnes.R \
+# Rscript /Path/to/this/nice/script/ExpMat_n_Annot_Log2transform_then_Plotting_PCA_Box_Heatmap_density_tsnes.R \
 # -m /Path/to/the/expression/matrix.txt \
 # -a /Path/2/your/annotation/file \
 # -c /Path/to/find/the/libraries \
 # -l some_label_for_the_results \
 # -g group \
+# -p 4 \
+# -s 2 \
 # -o /my/output/folder/2/create
 
 ############################## 
@@ -132,15 +134,15 @@ mymatrix <-read.table( file=args$matrix, stringsAsFactors = FALSE , check.names 
 #  mymatrix <-read.table(file="/media/rmejia/mountme88/Projects/Maja-covid/Data/Controls/Ncounter_Platform/Kidney/toys_merged_quantile_norm_by_batch.txt", stringsAsFactors = FALSE, check.names = FALSE)
 #  mymatrix <-read.table(file="/media/rmejia/mountme88/Projects/Maja-covid/Data/Merged/Exp_Mat_GSE115989_MNHK.tsv", stringsAsFactors = FALSE, check.names = FALSE)
 #  mymatrix <-read.table(file="/media/rmejia/mountme88/Projects/Maja-covid/Data/Merged/Exp_Mat_MK_GSE113342LE_GSE115989RJ_MajaL_GSE89880.txt", stringsAsFactors = FALSE, check.names = FALSE)
-#  mymatrix <-read.table(file="/media/rmejia/mountme88/Projects/Phosoholipidosis/RNAseq/Expression_Matrix_from_Emmi/lipidosis_RNA_16_STAR_fC_edgeR_matrix.txt", stringsAsFactors = FALSE, check.names = FALSE) 
-#                              /media/rmejia/mountme88/Projects/Phosoholipidosis/RNAseq/Expression_Matrix_from_Emmi/lipidosis_RNA_16_STAR_fC_edgeR_matrix.txt
+#  mymatrix <-read.table(file="/media/rmejia/mountme88/Projects/Phosoholipidosis/RNAseq/Expression_Matrix_from_Emmi/lipidosis_RNA_16_STAR_fC_edgeR_matrix_swipped_LipCon2-3_for_NorChl2-3.txt", stringsAsFactors = FALSE, check.names = FALSE) 
+
 
 annotdf <-read.table( file=args$annotation, stringsAsFactors = FALSE , header=TRUE )
 # annotdf <-read.table(file="/media/rmejia/mountme88/Projects/Maja-covid/Data/Controls/Ncounter_Platform/Kidney/toys_merged_annotations.tsv", stringsAsFactors = FALSE )
 # annotdf <-read.table(file="/media/rmejia/mountme88/Projects/Maja-covid/Data/Merged/GSE115989_MNHK_AnnotFile.tsv", stringsAsFactors = FALSE )
 # annotdf <-read.table(file="/media/rmejia/mountme88/Projects/Maja-covid/Data/Merged/Annot_MK_GSE113342_GSE115989_ML_GSE89880.tsv", stringsAsFactors = FALSE , header=TRUE )
 # annotdf <-read.table(file="/media/rmejia/mountme88/Projects/Phosoholipidosis/RNAseq/Expression_Matrix_from_Emmi/annotation_lipidosis_RNA_16_STAR_fC_edgeR_matrix_2021_04_09_Rformat.tsv", stringsAsFactors = FALSE , header=TRUE)
-#                            /media/rmejia/mountme88/Projects/Phosoholipidosis/RNAseq/Expression_Matrix_from_Emmi/annotation_lipidosis_RNA_16_STAR_fC_edgeR_matrix_2021_04_09_Rformat.tsv
+
 
 code_path <- args$code
 # code_path <- "/media/rmejia/mountme88/code/Processing_an_RNAexpression_matrix_from_hyb_n_scanning/"
