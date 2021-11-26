@@ -136,18 +136,16 @@ mymatrix <-read.table( file=args$matrix, stringsAsFactors = FALSE , check.names 
 #  mymatrix <-read.table(file="/media/rmejia/mountme88/Projects/Maja-covid/Data/Merged/Exp_Mat_MK_GSE113342LE_GSE115989RJ_MajaL_GSE89880.txt", stringsAsFactors = FALSE, check.names = FALSE)
 #  mymatrix <-read.table(file="/media/rmejia/mountme88/Projects/Phosoholipidosis/RNAseq/Expression_Matrix_from_Emmi/lipidosis_RNA_16_STAR_fC_edgeR_matrix_swipped_LipCon2-3_for_NorChl2-3.txt", stringsAsFactors = FALSE, check.names = FALSE) 
 
-
 annotdf <-read.table( file=args$annotation, stringsAsFactors = FALSE , header=TRUE )
 # annotdf <-read.table(file="/media/rmejia/mountme88/Projects/Maja-covid/Data/Controls/Ncounter_Platform/Kidney/toys_merged_annotations.tsv", stringsAsFactors = FALSE )
 # annotdf <-read.table(file="/media/rmejia/mountme88/Projects/Maja-covid/Data/Merged/GSE115989_MNHK_AnnotFile.tsv", stringsAsFactors = FALSE )
 # annotdf <-read.table(file="/media/rmejia/mountme88/Projects/Maja-covid/Data/Merged/Annot_MK_GSE113342_GSE115989_ML_GSE89880.tsv", stringsAsFactors = FALSE , header=TRUE )
 # annotdf <-read.table(file="/media/rmejia/mountme88/Projects/Phosoholipidosis/RNAseq/Expression_Matrix_from_Emmi/annotation_lipidosis_RNA_16_STAR_fC_edgeR_matrix_2021_04_09_Rformat.tsv", stringsAsFactors = FALSE , header=TRUE)
 
-
 code_path <- args$code
 # code_path <- "/media/rmejia/mountme88/code/Processing_an_RNAexpression_matrix_from_hyb_n_scanning/"
 
-label <- args$label # label <- "your_title" # label <- "lipidosis_RNA_16_STAR_fC_edgeR_matrix_looking_batches_by_generation"
+label <- args$label # label <- "your_title" # label <- "lipidosis_RNA_16_STAR_fC_edgeR_matrix_Log_transformed_swipped_LipCon23-NorChl23"
 your_main_groups <- args$maingroups # your_main_groups <- "group"
 
 myperplexitynumber <- args$perplexity
@@ -156,13 +154,13 @@ mode(myperplexitynumber) <- "numeric"
 
 PCA_point_size <- args$pcapointsize
 mode( PCA_point_size ) <- "numeric"
-#PCA_point_size <- 3
+# PCA_point_size <- 3
 
 outputfolder <- args$outputfolder
 #  outputfolder <- "/media/rmejia/mountme88/Projects/Maja-covid/Results/toy_merged_quantiles_normalized_per_batch/"
 #  outputfolder <- "/media/rmejia/mountme88/Projects/Maja-covid/Results/GSE115989_MNHK/"
 #  outputfolder <- "/media/rmejia/mountme88/Projects/Maja-covid/Results/Annot_MK_GSE113342_GSE115989_ML_GSE89880"
-#  outputfolder <- "/media/rmejia/mountme88/Projects/Phosoholipidosis/RNAseq/Expression_Matrix_from_Emmi/lipidosis_RNA_16_STAR_fC_edgeR_matrix_idk_if_they_are_shuffled/Exploring"
+#  outputfolder <- "/media/rmejia/mountme88/Projects/Phosoholipidosis/RNAseq/Expression_Matrix_from_Emmi/lipidosis_RNA_16_STAR_fC_edgeR_matrix_idk_if_they_are_shuffled/swipped_LipCon23-NorChl23_log_transformed_Heatmap"
 
 dir.create(outputfolder, recursive = TRUE)
 outputfolder <- normalizePath(outputfolder)

@@ -6,9 +6,9 @@
 # Search what should be the apropriate perplexity number for the tsnes
 ####################
 
-# exp_matrix <-   mymatrix
+# exp_matrix <-   expmat_log2
 # annotdf <- annot_4_plotting_pca
-# melteddf <-meltedrawdata
+# melteddf <- melted_expmat_log2
 # label4title <- paste0( label )
 # result_dir <- paste0( outputfolder,"/PCA_2D" )
 # myperplexity <- 3 # (default was 5)
@@ -45,6 +45,7 @@ PCA_box_density_heatmap_tsnes_plots <- function( result_dir, exp_matrix, annotdf
   ######
   pdf( file=paste0(result_dir,"/" , label4title ,".pdf"),
        width = 10, height = 7)
+  
   meaningful_variables <- setdiff( colnames(melteddf) , c("Unique_ID", "variable", "value") ) # selecting the variables used for the interation
   
   ###########
