@@ -6,7 +6,7 @@
 # Search what should be the apropriate perplexity number for the tsnes
 ####################
 
-# exp_matrix <-   expmat_log2
+# exp_matrix <-   expmat_log2[1:1000, ]
 # annotdf <- annot_4_plotting_pca
 # melteddf <- melted_expmat_log2
 # label4title <- paste0( label )
@@ -14,6 +14,7 @@
 # myperplexity <- 3 # (default was 5)
 # group_4_tsnes <- your_main_groups
 # PCA_point_size <-3
+# my_cutree_cols_dendrogram_heatmap <- 5
 
 # Please note that the columns in the annotation file should no contain numbers otherwise the tsnes complain
 
@@ -37,7 +38,16 @@ colors_4_plotDensities <- function( someannotdf , colname_from_your_annordf ){
 ####
 # The program starts
 ####
-PCA_box_density_heatmap_tsnes_plots <- function( result_dir, exp_matrix, annotdf, melteddf, label4title, myperplexity, group_4_tsnes, PCA_point_size){
+PCA_box_density_pheatmap_tsnes_plots <- function( result_dir,
+                                                 exp_matrix,
+                                                 annotdf, 
+                                                 melteddf,
+                                                 label4title, myperplexity,
+                                                 group_4_tsnes,
+                                                 PCA_point_size ,
+                                                 my_cutree_cols_dendrogram_heatmap,
+                                                 Include_pheatmap_TRUEorFALSE
+                                                 ){
   exp_matrix_T <- t(exp_matrix)
   dir.create( result_dir, recursive = TRUE )
   #######
@@ -91,10 +101,25 @@ PCA_box_density_heatmap_tsnes_plots <- function( result_dir, exp_matrix, annotdf
   #############
   ### heatmap
   #############
-  colors_for_heatmap <- colors_4_plotDensities(annotdf ,  group_4_tsnes )
-  heatmap( as.matrix(exp_matrix), ColSideColors=colors_for_heatmap , margins=c(30,2), Colv =FALSE)
-  heatmap( as.matrix(exp_matrix), ColSideColors=colors_for_heatmap , margins=c(1,2), Colv =FALSE)
-  ?heatmap
+  pheatmap_annotations <- annotdf # Creating an annotation dataframe for the pheatmap without "Unique_ID" column
+  rownames( pheatmap_annotations ) <- annotdf[ , "Unique_ID"]
+  pheatmap_annotations <- pheatmap_annotations[ , -grep( "Unique_ID", colnames( pheatmap_annotations ) ) ] # Deleting "Unique_ID" row 
+  
+  cal_z_score <- function(x){ # Defining the funtion for the z-transformation
+    (x - mean(x)) / sd(x)
+  }
+  
+  expmat_zscore <- t( apply( exp_matrix , 1, cal_z_score ) )
+  
+  if( Include_pheatmap_TRUEorFALSE == "TRUE"){
+      pheatmap( expmat_zscore ,
+              main = label4title ,
+              annotation_col = pheatmap_annotations,
+              cutree_cols= my_cutree_cols_dendrogram_heatmap
+      )
+    }
+
+
   ##############
   # Tsne-s
   ##############
