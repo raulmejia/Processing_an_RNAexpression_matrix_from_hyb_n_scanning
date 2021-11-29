@@ -4,19 +4,21 @@
 #   tsnes, pcas, ...
 
 # The structure of your matrix should be 
-#          sample1 sample2 ...
-# rowname1  0.42    45
-# rowname2  1       0
-# rowname3  45      0
-# NEG_Prob1 0       12
-# POS_E     2       1
+#LipChl1  LipChl2 ContUnt1  ContUnt2  LipUnt1
+#rowname1 0.42  45  25  45  65
+#rowname2 1 0 2 3 1
+#rowname3 45  0 12  23  2 
+#NEG_Prob1 0 2 1 12  15
+#POS_E 2 5 6 4 8
 
 # example of the annotation: (Note that columns with only numbers give problems)
 #
-# "Unique_ID"     "group" "Treatment"     "Cell_line"     "Generation"
-# "LipChl1"       "LipChl"        "CQ"    "DIP"   "_1"
-# "LipChl2"       "LipChl"        "CQ"    "DIP"   "_2"
-
+#"Unique_ID" "group" "Treatment"     "Cell_line"     "Generation"
+#"LipChl1" "LipChl"  "CQ"  "DIP" "_1"
+#"LipChl2" "LipChl"  "CQ"  "DIP" "_2"
+#"ContUnt1"  "ContUnt" "None"  "Control" "_1"
+#"ContUnt2"  "ContUnt" "None"  "Control" "_2"
+#"LipUnt1" "LipUnt"  "None"  "DIP" "_1"
 # one column of your annotation file should have the name "group" (Check if this is still valid) and other "Unique_ID"
 
 # Example of use:
