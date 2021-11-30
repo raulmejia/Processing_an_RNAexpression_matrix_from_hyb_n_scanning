@@ -20,6 +20,7 @@
 ####      Rscript /PathA/***.R /PathB/ExpMat_Demo.tsv 
 #### 
 ####  To do: Save in an R object the PAR genes and the PAR table  
+####  Do another program that preserve the genes and just give annotations
 ###################################
 #### 0) loading and/or installing required libraries
 ################################### 
