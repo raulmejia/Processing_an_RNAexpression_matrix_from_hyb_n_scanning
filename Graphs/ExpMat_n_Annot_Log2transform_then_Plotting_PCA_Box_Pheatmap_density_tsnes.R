@@ -23,7 +23,7 @@
 # one column of your annotation file should have the name "group" (Check if this is still valid) and other "Unique_ID"
 
 # Example of use:
-# Rscript /Path/to/this/nice/script/ExpMat_n_Annot_Log2transform_then_Plotting_PCA_Box_Heatmap_density_tsnes.R \
+# Rscript /Path/to/this/nice/script/ExpMat_n_Annot_Log2transform_then_Plotting_PCA_Box_Pheatmap_density_tsnes.R \
 # -m /Path/to/the/expression/matrix.txt \
 # -a /Path/2/your/annotation/file \
 # -c /Path/to/find/the/libraries \
