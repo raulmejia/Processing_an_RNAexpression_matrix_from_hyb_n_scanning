@@ -48,7 +48,7 @@ if (!require("httr")) {
   install.packages("httr", ask =FALSE)
   library("httr")
 }
-# dependencies crayon, purrr, httr, dplyr, tidyverse, htmltools, jquerylib, broom
+
 library(httr)
 set_config(config(ssl_verifypeer = 0L))
 ############################## 
@@ -134,7 +134,7 @@ res$PAR2[PAR2positions] <- "PAR2"
 
 #saving the DF
 final_path_to_save <-paste0( outputfolder,"/", basename( mymatrixpath ) ,label )
-write.table( res, file= final_path_to_save , sep="\t", col.names = TRUE, row.names = TRUE, quote=FALSE )
+write.table( res, file= final_path_to_save , sep="\t", col.names = TRUE, row.names = TRUE, quote=TRUE )
 
 ##############################
 ## The dataframe with the PAR annotation
