@@ -17,7 +17,7 @@
 #ENSG00000225661  X 1008503 1010101 RPL14P5
 ####      
 #### Example:
-####      Rscript /PathA/***.R /PathB/ExpMat_Demo.tsv 
+####      Rscript /data/code/Processing_an_RNAexpression_matrix_from_hyb_n_scanning/Annotation/Some_annotation_according_choosed_chromosomes.R /PathB/ExpMat_Demo.tsv 
 #### 
 ####  To do: Save in an R object the PAR genes and the PAR table  
 ####  Do another program that preserve the genes and just give annotations
@@ -44,7 +44,13 @@ if (!require("tidyverse")) {
   install.packages("tidyverse", ask =FALSE)
   library("tidyverse")
 }
-
+if (!require("httr")) {
+  install.packages("httr", ask =FALSE)
+  library("httr")
+}
+# dependencies crayon, purrr, httr, dplyr, tidyverse, htmltools, jquerylib, broom
+library(httr)
+set_config(config(ssl_verifypeer = 0L))
 ############################## 
 ## Data given by the user
 ##############################
@@ -62,8 +68,8 @@ parser$add_argument("-c", "--chomosomes", type="character",
                     help="path to your expression matrix")
 parser$add_argument("-l", "--label", type="character", 
                     help="label to your results")
-parser$add_argument("-o", "--outputfile", type="character", 
-                    help="output file where you want to store your results")
+parser$add_argument("-o", "--outputfolder", type="character", 
+                    help="output folder where you want to store your results")
 
 # get command line options, if help option encountered print help and exit,
 # otherwise if options not found on command line then set defaults, 
@@ -73,17 +79,24 @@ args <- parser$parse_args( )
 #############################
 ## Reading or preparing the inputs
 #############################
-mymatrix <-read.table( file=args$matrix, stringsAsFactors = FALSE , check.names = FALSE)
-# mymatrix <-read.table(file="/media/rmejia/mountme88/Projects/Phosoholipidosis/RNAseq/Expression_Matrix_from_Emmi/lipidosis_RNA_16_STAR_fC_edgeR_matrix_swapped_LipCon2_NorChl2_Shifted2Left_LipChl3_LipCon3_NorChl3.txt", stringsAsFactors = FALSE, check.names = FALSE) 
-label <- args$label #  label <- "_Annotations_Extracting_X_n_Y_and_annoting"
 
-myChosedChromosomes <- args$chomosomes
+# mymatrixpath <-"/media/rmejia/mountme88/Projects/Phosoholipidosis/RNAseq/Expression_Matrix_from_Emmi/Data/Rearrangements_of_the_Source/lipidosis_RNA_16_STAR_fC_edgeR_matrix_swapped_LipCon2_NorChl2_Shifted2Left_LipChl3_LipCon3_NorChl3.txt"
+mymatrixpath <- args$matrix
+mymatrix <-read.table( file = mymatrixpath , stringsAsFactors = FALSE , check.names = FALSE)
+
+label <- args$label #  label <- "Annotations_Extracting_X_n_Y_and_annotating.tsv"
+
+# Choosen_Chr_path <- "/media/rmejia/mountme88/Projects/Phosoholipidosis/RNAseq/Expression_Matrix_from_Emmi/Testing_swapping_rearraegments/chromXnY.txt"
+Choosen_Chr_path <- args$chomosomes
+Choosen_Chr <- read.table( file=Choosen_Chr_path, stringsAsFactors = FALSE , check.names = FALSE, header = FALSE )
 # myChosedChromosomes <- c("X","Y")
+Choosen_Chr <- Choosen_Chr$V1
 
-outputfile <- args$outputfile
-#  outputfile <- "/media/rmejia/mountme88/Projects/Phosoholipidosis/RNAseq/Expression_Matrix_from_Emmi/lipidosis_RNA_16_STAR_fC_edgeR_matrix_swapped_LipCon2_NorChl2_Shifted2Left_LipChl3_LipCon3_NorChl3_XnY_extracted.txt"
-#dir.create(outputfolder, recursive = TRUE)
-#outputfolder <- normalizePath(outputfolder)
+outputfolder <- args$outputfolder
+# outputfolder <- "/media/rmejia/mountme88/Projects/Phosoholipidosis/RNAseq/Expression_Matrix_from_Emmi/Testing_swapping_rearraegments/"
+dir.create( outputfolder, recursive = TRUE )
+outputfolder <- normalizePath( outputfolder )
+#dirname( ) #basename( )
 
 ##############################
 ## The program starts
@@ -98,7 +111,7 @@ ensembl <-                                ## fully specified mart
 #head(listDatasets(useMart("ensembl")), 3) ## mart datasets
 #head(listFilters(ensembl), 20)             ## filters
 myFilter <- "chromosome_name"
-myValues <- myChosedChromosomes
+myValues <- Choosen_Chr
 myAttributes <- c("ensembl_gene_id","chromosome_name","start_position","end_position","hgnc_symbol" )
 res <- getBM(attributes =  myAttributes, filters =  myFilter,
              values =  myValues, mart = ensembl)
@@ -110,19 +123,18 @@ PAR1 <- sort( c( "PLCXD1","GTPBP6","PPP2R3B","SHOX","CRLF2","CSF2RA","IL3RA","SL
                  ,"ASMTL","P2RY8","AKAP17A","ASMT","DHRSX","ZBED1","CD99","XG" ))
 PAR2 <- c( "IL9R", "SPRY3","VAMP7" )
 
-res$PAR1 <- rep( NA , dim( res )[ 1 ] )  
+res$PAR1 <- rep( NA , dim( res )[ 1 ] )
 PAR1positions <- which(res$hgnc_symbol %in% PAR1)
-res$PAR1[PAR1positions] <- "PAR1" 
+res$PAR1[PAR1positions] <- "PAR1"
 
-res$PAR2 <- rep( NA , dim( res )[ 1 ] )  
+res$PAR2 <- rep( NA , dim( res )[ 1 ] )
 PAR2positions <- which(res$hgnc_symbol %in% PAR2)
-res$PAR2[PAR2positions] <- "PAR2" 
-dim(res)
-dim(mymatrix)
-#saving the DF 
-write.table(res, file=outputfile , sep="\t", col.names = TRUE, row.names = TRUE, quote=FALSE)
+res$PAR2[PAR2positions] <- "PAR2"
 
 
+#saving the DF
+final_path_to_save <-paste0( outputfolder,"/", basename( mymatrixpath ) ,label )
+write.table( res, file= final_path_to_save , sep="\t", col.names = TRUE, row.names = TRUE, quote=FALSE )
 
 ##############################
 ## The dataframe with the PAR annotation
@@ -133,4 +145,4 @@ PositionsPARs <- data.frame( version=c( "GRCh38","GRCh38","GRCh38","GRCh38","GRC
                              end_position = c(2781479 ,156030895,2781479,57217415,2699520,155260560,2649520,59363566 ),
                              chromosome_name = c( "PAR1","PAR2","PAR1","PAR2","PAR1","PAR2","PAR1","PAR2" ) )
 
-
+write.table( PositionsPARs, file = paste0( outputfolder, "/" , basename(mymatrixpath ) , label , "PARS_info.tsv" ) )
