@@ -17,10 +17,16 @@
 #ENSG00000225661  X 1008503 1010101 RPL14P5
 ####      
 #### Example:
-####      Rscript /data/code/Processing_an_RNAexpression_matrix_from_hyb_n_scanning/Annotation/Some_annotation_according_choosed_chromosomes.R /PathB/ExpMat_Demo.tsv 
-#### 
-####  To do: Save in an R object the PAR genes and the PAR table  
-####  Do another program that preserve the genes and just give annotations
+####     
+####Rscript /Path/to/Script/Some_annotation_according_choosed_chromosomes.R \
+#### -m /Path/to/Expression_Matrix/lipidosis_RNA_16_STAR_fC_edgeR_matrix_swapped_LipCon2_NorChl2_Shifted2Left_LipChl3_LipCon3_NorChl3.txt \
+#### -c /Path/2/your/chromosomes/of/interest/chromXnY.txt \
+#### -l Some_label_for_the_titles_and_file_names_of_your_results \
+#### -o /Path/for/the/output/  
+####
+####  To do: 
+####     Save in an R object the PAR genes and the PAR table  
+####     Do another program that preserve the genes and just give annotations
 ###################################
 #### 0) loading and/or installing required libraries
 ################################### 
@@ -130,7 +136,6 @@ res$PAR1[PAR1positions] <- "PAR1"
 res$PAR2 <- rep( NA , dim( res )[ 1 ] )
 PAR2positions <- which(res$hgnc_symbol %in% PAR2)
 res$PAR2[PAR2positions] <- "PAR2"
-
 
 #saving the DF
 final_path_to_save <-paste0( outputfolder,"/", basename( mymatrixpath ) ,label )
