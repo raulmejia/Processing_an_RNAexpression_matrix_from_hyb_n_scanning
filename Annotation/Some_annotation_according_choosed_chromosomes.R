@@ -27,6 +27,7 @@
 ####  To do: 
 ####     Save in an R object the PAR genes and the PAR table  
 ####     Do another program that preserve the genes and just give annotations
+####     Label the PAR regions according the to the start and end coordinates, not just the starting and ending points
 ###################################
 #### 0) loading and/or installing required libraries
 ################################### 
@@ -92,10 +93,10 @@ mymatrix <-read.table( file = mymatrixpath , stringsAsFactors = FALSE , check.na
 
 label <- args$label #  label <- "Annotations_Extracting_X_n_Y_and_annotating.tsv"
 
-# Choosen_Chr_path <- "/media/rmejia/mountme88/Projects/Phosoholipidosis/RNAseq/Expression_Matrix_from_Emmi/Testing_swapping_rearraegments/chromXnY.txt"
+# Choosen_Chr_path <- "/media/rmejia/mountme88/Projects/Phosoholipidosis/RNAseq/Expression_Matrix_from_Emmi/Testing_swapping_rearraegments/chromY.txt"
 Choosen_Chr_path <- args$chomosomes
 Choosen_Chr <- read.table( file=Choosen_Chr_path, stringsAsFactors = FALSE , check.names = FALSE, header = FALSE )
-# myChosedChromosomes <- c("X","Y")
+# myChosedChromosomes <- c("Y")
 Choosen_Chr <- Choosen_Chr$V1
 
 outputfolder <- args$outputfolder
@@ -136,6 +137,12 @@ res$PAR1[PAR1positions] <- "PAR1"
 res$PAR2 <- rep( NA , dim( res )[ 1 ] )
 PAR2positions <- which(res$hgnc_symbol %in% PAR2)
 res$PAR2[PAR2positions] <- "PAR2"
+
+#######
+# Ordering the results before saving
+#######
+res <- res[ order( res$start_position) , ]
+
 
 #saving the DF
 final_path_to_save <-paste0( outputfolder,"/", basename( mymatrixpath ) ,label )

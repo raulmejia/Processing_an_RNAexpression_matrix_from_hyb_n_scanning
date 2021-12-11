@@ -35,7 +35,6 @@ if (!require("pheatmap")) {
   library("pheatmap")
 }
 
-
 ############################## 
 ## Data given by the user
 ##############################
@@ -61,6 +60,8 @@ parser$add_argument("-g", "--maingroups", type="character",
                     help="the name of your column to correct / make intrabatch normalization")
 parser$add_argument("-p", "--parregions", type="character", 
                     help="Include Pseudoautosomal regions or not TRUE/FALSE")
+parser$add_argument("-s", "--specialsample", type="character", 
+                    help="The name of a special sample from which you want an individual boxplot")
 parser$add_argument("-o", "--outputfolder", type="character", 
                     help="output folder where you want to store your results")
 
@@ -75,11 +76,12 @@ args <- parser$parse_args( )
 mymatrix <-read.table( file=args$matrix, stringsAsFactors = FALSE , check.names = FALSE)
 #  mymatrix <-read.table(file="/media/rmejia/mountme88/Projects/Phosoholipidosis/RNAseq/Expression_Matrix_from_Emmi/Data/Rearrangements_of_the_Source/lipidosis_RNA_16_STAR_fC_edgeR_matrix_swapped_LipCon2_NorChl2_Shifted2Left_LipChl3_LipCon3_NorChl3.txt", stringsAsFactors = FALSE, check.names = FALSE) 
 #  mymatrix <-read.table(file="/data/Projects/Phosoholipidosis/RNAseq/Expression_Matrix_from_Emmi/Data/Rearrangements_of_the_Source/lipidosis_RNA_16_STAR_fC_edgeR_matrix_swapped_LipCon2_NorChl2_Shifted2Left_LipChl3_LipCon3_NorChl3.txt", stringsAsFactors = FALSE, check.names = FALSE) 
+#  mymatrix <-read.table(file="/media/rmejia/mountme88/Projects/Phosoholipidosis/RNAseq/Expression_Matrix_from_Emmi/Data/Source/lipidosis_RNA_16_STAR_fC_edgeR_matrix.txt", stringsAsFactors = FALSE, check.names = FALSE) 
 
 filteringmatrix <-read.table( file=args$matrixtofilter , stringsAsFactors = FALSE , check.names = FALSE)
 # filteringmatrix <- read.table(file="/media/rmejia/mountme88/Projects/Phosoholipidosis/RNAseq/Expression_Matrix_from_Emmi/Testing_swapping_rearraegments/lipidosis_RNA_16_STAR_fC_edgeR_matrix_swapped_LipCon2_NorChl2_Shifted2Left_LipChl3_LipCon3_NorChl3.txtExtracting_Chr_X_and_annotating.tsv", stringsAsFactors = FALSE , header=TRUE)
 # filteringmatrix <- read.table(file="/media/rmejia/mountme88/Projects/Phosoholipidosis/RNAseq/Expression_Matrix_from_Emmi/Testing_swapping_rearraegments/lipidosis_RNA_16_STAR_fC_edgeR_matrix_swapped_LipCon2_NorChl2_Shifted2Left_LipChl3_LipCon3_NorChl3.txtExtracting_Chr_Y_and_annotating.tsv", stringsAsFactors = FALSE , header=TRUE)
-# filteringmatrix <- read.table(file="/data/Projects/Phosoholipidosis/RNAseq/Expression_Matrix_from_Emmi/Testing_swapping_rearraegments/lipidosis_RNA_16_STAR_fC_edgeR_matrix_swapped_LipCon2_NorChl2_Shifted2Left_LipChl3_LipCon3_NorChl3.txtExtracting_Chr_Y_and_annotating.tsv", stringsAsFactors = FALSE , header=TRUE)
+# filteringmatrix <- read.table(file="/media/rmejia/mountme88/Projects/Phosoholipidosis/RNAseq/Expression_Matrix_from_Emmi/Testing_swapping_rearraegments/lipidosis_RNA_16_STAR_fC_edgeR_matrix_swapped_LipCon2_NorChl2_Shifted2Left_LipChl3_LipCon3_NorChl3.txtExtracting_Chr_Y_and_annotating.tsv", stringsAsFactors = FALSE , header=TRUE)
 
 namecol_fromMF <- args$namecolfrommatrixfilter
 # namecol_fromMF <-"ensembl_gene_id"
@@ -99,6 +101,9 @@ label <- args$label # label <- "your_title" #
 
 PAR_regions <- args$parregions
 # PAR_regions <- FALSE
+
+special_sample <- args$
+# special_sample <- "LipCon2"
 
 outputfolder <- args$outputfolder
 #  outputfolder <- "/media/rmejia/mountme88/Projects/Phosoholipidosis/RNAseq/Expression_Matrix_from_Emmi/Testing_swapping_rearraegments"
@@ -138,7 +143,7 @@ dim( matrix_prunned)[1] ; dim( filteringmatrix)[1] # Proportion between the prun
 print ("dimension of the filtering matrix given as input and after applying the criteria")
 
 ####################
-### Rliminating the Rows with only zeros
+### Eliminating the Rows with only zeros
 ####################
 RowPositions_with_all_zeros <- rowSums(matrix_prunned) == 0 # row positions with only zeros
 matrix_excluding_AllZeroRows <- matrix_prunned[!RowPositions_with_all_zeros, ] # eliminating those rows
@@ -156,63 +161,39 @@ expmat_log2 <- log2( matrix_excluding_AllZeroRows +1 )
 source( paste0( code_path ,"/libraries/" , "matrix_N_annotdf_2_melteddf.R") )
 melted_expmat_log2 <- matrix_N_annotdf_2_melteddf(expmat_log2 , annot_4_plotting_pca )
 
-head(melted_expmat_log2 , n = 10)
+melted_expmat <- matrix_N_annotdf_2_melteddf(matrix_excluding_AllZeroRows , annot_4_plotting_pca )
 
-# library(plotly)
-# g <- ggplot(mpg, aes(class))  
-# p <-  g + geom_bar()
-# ggplotly(p)
-# 
-# library(plotly)
-# g <- ggplot(mpg, aes(class))  
-# p <-  g + geom_bar(aes(weight = displ))
-# ggplotly(p)
-# 
-# library(plotly)
-# dat <- data.frame(
-#   time = factor(c("Lunch","Dinner"), levels=c("Lunch","Dinner")),
-#   total_bill = c(14.89, 17.23)
-# )
-# p <- ggplot(data=dat, aes(x=time, y=total_bill, fill=time)) +
-#   geom_bar(stat="identity")
-# fig <- ggplotly(p)
-# fig
 
-library(plotly)
-dat1 <- data.frame(
-  sex = factor(c("Female","Female","Male","Male")),
-  time = factor(c("Lunch","Dinner","Lunch","Dinner"), levels=c("Lunch","Dinner")),
-  total_bill = c(13.53, 16.81, 16.24, 17.42)
-)
-p <- ggplot(data=dat1, aes(x=time, y=total_bill, fill=sex)) +
-  geom_bar(stat="identity", position=position_dodge(), colour="black") +
-  scale_fill_manual( values=c("#999999", "#E69F00") )
-fig <- ggplotly(p)
-fig
+pdf(file= paste0(outputfolder,"/", label) , height = 7, width = 7 )
 
-head(melted_expmat_log2)
+g <- ggplot(melted_expmat_log2, aes( x= Unique_ID, y=value) ) +
+  geom_boxplot()
+g  + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+#g+ coord_flip()  + geom_jitter(shape=16, position=position_jitter(0.2))
 
-boxplot(matrix_excluding_AllZeroRows )
-boxplot( t( expmat_log2[,"LipCon2"]) )
-boxplot( t( expmat_log2[,"NorChl2"]) )
-boxplot(expmat_log2)
+gem <- ggplot(melted_expmat , aes( x= Unique_ID, y=value) ) +
+  geom_boxplot()
+gem  + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 
-RowPositionsmymatrix_with_all_zeros<- rowSums(mymatrix) == 0 # row positions with only zeros
-Mymatrix_excluding_AllZeroRows <- mymatrix[!RowPositionsmymatrix_with_all_zeros, ] # eliminating those rows
 
-log2Mymatrix_excluding_AllZeroRows <- log2( Mymatrix_excluding_AllZeroRows +1 )
+####
+# Expecial sample to visualize
+
+melted_expmat_log2_special_sample <- melted_expmat_log2 %>% filter( Unique_ID == special_sample  )
+f <- ggplot(melted_expmat_log2_special_sample, aes( x=  variable, y=value) ) +
+  geom_boxplot()
+f  + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+dev.off()
+
+#RowPositionsmymatrix_with_all_zeros<- rowSums(mymatrix) == 0 # row positions with only zeros
+#Mymatrix_excluding_AllZeroRows <- mymatrix[!RowPositionsmymatrix_with_all_zeros, ] # eliminating those rows
+
+#log2Mymatrix_excluding_AllZeroRows <- log2( Mymatrix_excluding_AllZeroRows +1 )
 #heatmap( as.matrix( log2Mymatrix_excluding_AllZeroRows ))
-cal_z_score <- function(x){ # Defining the funtion for the z-transformation
-  (x - mean(x)) / sd(x)
-}
-expmat_zscore <- t( apply( log2Mymatrix_excluding_AllZeroRows , 1, cal_z_score ) )
+#cal_z_score <- function(x){ # Defining the funtion for the z-transformation
+#  (x - mean(x)) / sd(x)
+#}
+#expmat_zscore <- t( apply( log2Mymatrix_excluding_AllZeroRows , 1, cal_z_score ) )
 
-pheatmap( expmat_zscore )
-head(expmat_zscore, n=20)
-rowSums(expmat_zscore)
-
-
-
-g <- ggplot( data = melted_expmat_log2 , aes( x= Unique_ID , y= value , fill = Cell_line )   ) + 
-  geom_bar( stat = "identity" , position = position_dodge())
-g             
+#pheatmap( expmat_zscore )
